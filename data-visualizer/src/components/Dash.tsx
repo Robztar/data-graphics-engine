@@ -10,7 +10,7 @@ export const Dash = () =>{
 
      return(
           <div className="dash-body h-full w-full p-2 flex items-start justify-center flex-wrap gap-12">
-               <Link to="/edit" className="proj-tile-title">
+               <Link to="/proj" className="proj-tile-title">
                     <div className="dash-body bg-teal-400 w-56 h-56 rounded-lg cursor-pointer">Hello World</div>
                </Link>
                <div className="dash-body bg-blue-400 w-56 h-56 rounded-lg">Hello World</div>

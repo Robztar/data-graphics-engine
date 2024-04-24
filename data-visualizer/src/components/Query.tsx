@@ -8,7 +8,7 @@ export const Query = () =>{
                <input className="rounded-l-lg" type="text" placeholder="Enter Data Here" />
                <button className="rounded-r-lg rounded-l-none bg-teal-500" onClick={()=>{
 
-                    navigate("/edit")
+                    navigate("/proj")
                }}>Enter</button>
           </div>
      )
