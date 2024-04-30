@@ -14,10 +14,10 @@ button {
 button:hover {
      border-color: #646cff;
 }
-button:focus,
-button:focus-visible {
-     outline: 4px auto -webkit-focus-ring-color;
-}
+// button:focus,
+// button:focus-visible {
+//      outline: 4px auto -webkit-focus-ring-color;
+// }
 
 
 // --- Dashboard
@@ -28,4 +28,19 @@ button:focus-visible {
      left: 0.5rem;
      width: calc(100vw - 1rem);
      border-radius: 2rem;
+}
+.query-float-cont *{display: none;}
+.query-float-cont.active *{display: flex;}
+
+.query-float-body{
+     top: 12.5%;
+     left: 12.5%;
+     input{outline: none;}
+     // input:focus, input:focus-visible {
+     //      border: #14b8a6;
+     // }
+     button:hover{
+          border: 2px solid #14b8a6;
+          background: #14b8a6;
+     }
 }

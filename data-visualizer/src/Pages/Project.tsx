@@ -1,52 +1,13 @@
 import { useState, useEffect } from 'react';
-import * as d3 from "d3";
 
 import { Nav } from "../components/Nav"
+import { TestBar } from '../components/TestBar';
+import { NewBar } from '../components/NewBar';
 
 // import { uiStore } from "../hooks/uiStore"
 // import { dataStore } from "../hooks/dataStore"
 
-type BarProps = {
-     data: number[],
-     dimensions:{
-          [key:string]:number
-     }
-}
 
-// const Bars = ({...props}:any) => {
-const Bars = (props:BarProps) => {
-     const {data, dimensions} = props;
-     const xScale = d3.scaleBand()
-          .domain(data.map((numData:any, index:any)=>index))
-          .range([0, dimensions.width])
-     const yScale = d3.scaleLinear()
-          .domain([0,1])
-          .range([0,dimensions.height])
-
-     return (
-          <div className='w-full h-full bg-red-200'>
-               <svg
-                    // x={dimensions.marginLeft}
-                    // y={dimensions.marginTop}
-                    height={dimensions.height}
-                    width={dimensions.width}
-                    overflow="visible"
-               >
-                    {data.map((numData:any, index: any)=>(
-                         <rect 
-                              height={yScale(numData)}
-                              width={xScale.bandwidth()}
-                              x={xScale(index)}
-                              y={dimensions.height - yScale(numData)}
-                              stroke="teal"
-                              fill="gold"
-                         />
-                    ))}
-               </svg>
-          </div>
-          
-     )
-}
 
 export const Project = () =>{
      // const {menu, colorScheme, switchMenu, setScheme} = uiStore();
@@ -72,11 +33,13 @@ export const Project = () =>{
      return(
           <div id="project-page" className="h-screen w-screen flex items-center p-2 pt-20">
                <Nav />
-               <div className='w-full bg-red-200'>Project</div>
-               <Bars
+               <div className='w-full bg-red-300'>Project</div>
+               {/* <TestBar
                     data={data}
                     dimensions={dimensions}
-               />
+               /> */}
+               <NewBar />
+
           </div>
      )
 }
