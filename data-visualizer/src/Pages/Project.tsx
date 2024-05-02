@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 
 import { Nav } from "../components/Nav"
+import { TestLine } from '../components/TestLine';
 import { TestBar } from '../components/TestBar';
 import { NewBar } from '../components/NewBar';
 
@@ -34,11 +35,12 @@ export const Project = () =>{
           <div id="project-page" className="h-screen w-screen flex items-center p-2 pt-20">
                <Nav />
                <div className='w-full bg-red-300'>Project</div>
+               <TestLine />
                {/* <TestBar
                     data={data}
                     dimensions={dimensions}
                /> */}
-               <NewBar />
+               {/* <NewBar /> */}
 
           </div>
      )

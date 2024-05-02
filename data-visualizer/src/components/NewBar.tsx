@@ -63,6 +63,20 @@ export const NewBar = () => {
                //      .attr('transform', `translate(${dimensions.margin +', 0'})`)
                //      .call(yAxis)
 
+               sel.selectAll('rect')
+                    .data(data)
+                    .transition()
+                    .duration(2000)
+                    .attr('width', xScale.bandwidth)
+                    .attr('height', d=> dimensions.cHeight-yScale(d.units))
+                    .attr('fill', d=>d.fill)
+                    .attr('x', d => {
+                         const x = xScale(d.name)
+                         if (x)
+                              return x
+                         return null
+                    })
+                    .attr('y', d=> yScale(d.units))
                sel
                     // .append('g')
                     // .attr('transform', `translate(${dimensions.margin},0)`)
