@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useEffect } from "react";
 import * as d3 from "d3";
 
 // --- Guides - Line Graphs & Area Graphs:
@@ -21,26 +21,35 @@ import * as d3 from "d3";
 //      console.log("Sliced Data is"+sliced)
 //      setD(sliced)
 // }
+type LineProps = {
+     data: { date: Date; val: number }[],
+     setData: any,
+     // setData: React.SetStateAction<any[]>,
+     dimensions:{
+          [key:string]:number
+     }
+}
 
-export const TestLine = () => {
+export const TestLine = (props:LineProps) => {
      // const {data, dimensions} = props
      const svgRef = useRef<SVGSVGElement | null>(null)
      
-     const [data, setData] = useState<{ date: Date; val: number }[]>([
-          {date: new Date('2022-01-10'), val: 100},
-          {date: new Date('2022-03-10'), val: 150},
-          {date: new Date('2022-06-10'), val: 180},
-          {date: new Date('2022-09-10'), val: 175},
-          {date: new Date('2023-01-10'), val: 200},
-          {date: new Date('2023-03-10'), val: 230},
-          {date: new Date('2023-06-10'), val: 280},
-          {date: new Date('2023-09-10'), val: 240},
-     ])
-     const dimensions = {
-          height: 600, // div height in px
-          width: 700, // div width in px
-          cHeight: 550, // chart height in px
-          cWidth: 680, // chart width in px
+     // const [data, setData] = useState<{ date: Date; val: number }[]>([
+     //      {date: new Date('2022-01-10'), val: 100},
+     //      {date: new Date('2022-03-10'), val: 150},
+     //      {date: new Date('2022-06-10'), val: 180},
+     //      {date: new Date('2022-09-10'), val: 175},
+     //      {date: new Date('2023-01-10'), val: 200},
+     //      {date: new Date('2023-03-10'), val: 230},
+     //      {date: new Date('2023-06-10'), val: 280},
+     //      {date: new Date('2023-09-10'), val: 240},
+     // ])
+     const data = props.data
+     // const setData = props.setData
+     const dimensions = props.dimensions
+     const chartDims = {
+          height: dimensions.height - 50, // chart height in px
+          width: dimensions.width - 20, // chart width in px
           margin: {
                top:30,
                bottom:20,
@@ -49,23 +58,20 @@ export const TestLine = () => {
           }, // chart margins
      }
      const maxDataVal = d3.max(data, d=> d.val)
-     console.log('Max is: '+maxDataVal)
+     console.log('Max Line is: '+maxDataVal)
      const xScale = d3.scaleTime()
-          .range([0, dimensions.cWidth])
+          .range([0, chartDims.width])
           .domain(d3.extent(data, d => d.date) as [Date, Date]);
 
      const yScale = d3.scaleLinear()
           .domain([0,maxDataVal!])
-          .range([dimensions.cHeight,0])
-          
-
-     const xScal = d3.scaleBand()
-          .domain(data.map((_, index:any)=>index))
-          .range([0, dimensions.cWidth])
+          .range([chartDims.height,0])
 
      const xAxis = d3.axisBottom(xScale)
           .ticks(d3.timeMonth.every(1))
-          .tickFormat(d3.timeFormat('%b %y'))
+          // .tickFormat(d3.timeFormat('%b %y'))
+          d3.timeFormat('%b %y') as (value: Date | { valueOf(): number }, i: number) => string;
+
      const yAxis = d3.axisLeft(yScale)
 
      
@@ -74,18 +80,18 @@ export const TestLine = () => {
 
           svg.append('g')
                .attr('class', 'x-axis')
-               .attr('transform', `translate(${dimensions.margin.left + ','+ dimensions.cHeight})`)
+               .attr('transform', `translate(${chartDims.margin.left + ','+ chartDims.height})`)
                .call(xAxis)
           svg.append('g')
                .attr('class', 'y-axis')
-               .attr('transform', `translate(${dimensions.margin.left},0)`)
+               .attr('transform', `translate(${chartDims.margin.left},0)`)
                .call(yAxis)
 
-          const line = d3.line()
+          const line = d3.line<{ date: Date; val: number }>()
                .x(d => xScale(d.date))
                .y(d => yScale(d.val))
           svg.append('path').datum(data)
-               .attr('transform', `translate(${dimensions.margin.left + ',0'})`)
+               .attr('transform', `translate(${chartDims.margin.left + ',0'})`)
                .attr('fill', 'none')
                .attr('stroke', 'steelblue')
                .attr('stroke-width', 1)
@@ -93,8 +99,18 @@ export const TestLine = () => {
      },[svgRef])
 
      useEffect(()=>{
-          // d3.selectAll('.x-axis').remove()
-          // d3.selectAll('.y-axis').remove()
+          d3.selectAll('.x-axis').remove()
+          d3.selectAll('.y-axis').remove()
+
+          const svg = d3.select(svgRef.current)
+          svg.append('g')
+               .attr('class', 'x-axis')
+               .attr('transform', `translate(${chartDims.margin.left + ','+ chartDims.height})`)
+               .call(xAxis)
+          svg.append('g')
+               .attr('class', 'y-axis')
+               .attr('transform', `translate(${chartDims.margin.left},0)`)
+               .call(yAxis)
      },[data])
 
      return (
