@@ -1,5 +1,7 @@
-import { useRef, useEffect } from "react";
-import * as d3 from "d3";
+import { useRef, useEffect } from "react"
+import * as d3 from "d3"
+
+import { dataStore } from "../hooks/dataStore"
 
 // --- Guides - Line Graphs & Area Graphs:
      // Line/Area - https://sharkcoder.com/data-visualization/d3-react
@@ -14,38 +16,26 @@ import * as d3 from "d3";
 //      console.log('Units: '+ ranData.value)
 //      setD([...d, ranData])
 // }
-// const delLastItem = (d:any, setD:any) =>{
-//      if (d.length === 0)
-//           return
-//      const sliced = d.slice(0, d.length-1)
-//      console.log("Sliced Data is"+sliced)
-//      setD(sliced)
-// }
+const delLastItem = (d:any, setD:any, id:string) =>{
+     if (d.length === 0)
+          return
+     const sliced = d.slice(0, d.length-1)
+     console.log("Sliced Data is"+sliced)
+     setD(sliced, id)
+}
+
+
 type LineProps = {
-     data: { date: Date; val: number }[],
-     setData: any,
-     // setData: React.SetStateAction<any[]>,
+     dataInst: any,
      dimensions:{
           [key:string]:number
      }
 }
 
 export const TestLine = (props:LineProps) => {
-     // const {data, dimensions} = props
+     const {dataset, setData, setModifyDate} = dataStore()
      const svgRef = useRef<SVGSVGElement | null>(null)
-     
-     // const [data, setData] = useState<{ date: Date; val: number }[]>([
-     //      {date: new Date('2022-01-10'), val: 100},
-     //      {date: new Date('2022-03-10'), val: 150},
-     //      {date: new Date('2022-06-10'), val: 180},
-     //      {date: new Date('2022-09-10'), val: 175},
-     //      {date: new Date('2023-01-10'), val: 200},
-     //      {date: new Date('2023-03-10'), val: 230},
-     //      {date: new Date('2023-06-10'), val: 280},
-     //      {date: new Date('2023-09-10'), val: 240},
-     // ])
-     const data = props.data
-     // const setData = props.setData
+
      const dimensions = props.dimensions
      const chartDims = {
           height: dimensions.height - 50, // chart height in px
@@ -57,82 +47,112 @@ export const TestLine = (props:LineProps) => {
                right:20,
           }, // chart margins
      }
-     const maxDataVal = d3.max(data, d=> d.val)
-     console.log('Max Line is: '+maxDataVal)
-     const xScale = d3.scaleTime()
-          .range([0, chartDims.width])
-          .domain(d3.extent(data, d => d.date) as [Date, Date]);
+     const dataInst = dataset.find((d:any) => d.key === props.dataInst.key)
+     
+     
+     if(dataInst){
+          let dataID = dataInst.key
+          let data :{ date: Date; val: number }[] = []
+          dataInst.data.map((d:{ date: Date; val: number }) =>{
+               const date = new Date(d.date)
+               data.push({date:date, val:d.val})
+          })
 
-     const yScale = d3.scaleLinear()
-          .domain([0,maxDataVal!])
-          .range([chartDims.height,0])
+          // const setData = props.setData
+          
+          const maxDataVal = d3.max(data, d=> d.val)
+          console.log('Max Line is: '+maxDataVal)
+          const xScale = d3.scaleTime()
+               .range([0, chartDims.width])
+               .domain(d3.extent(data, d => d.date) as [Date, Date]);
 
-     const xAxis = d3.axisBottom(xScale)
-          .ticks(d3.timeMonth.every(1))
-          // .tickFormat(d3.timeFormat('%b %y'))
-          d3.timeFormat('%b %y') as (value: Date | { valueOf(): number }, i: number) => string;
+          const yScale = d3.scaleLinear()
+               .domain([0,maxDataVal!])
+               .range([chartDims.height,0])
 
-     const yAxis = d3.axisLeft(yScale)
+          const xAxis = d3.axisBottom(xScale)
+               .ticks(d3.timeMonth.every(1))
+               // .tickFormat(d3.timeFormat('%b %y'))
+               d3.timeFormat('%b %y') as (value: Date | { valueOf(): number }, i: number) => string;
+
+          const yAxis = d3.axisLeft(yScale)
 
      
-     useEffect(()=>{
-          const svg = d3.select(svgRef.current)
+          useEffect(()=>{
+               const svg = d3.select(svgRef.current)
+     
+               svg.append('g')
+                    .attr('class', 'x-axis')
+                    .attr('transform', `translate(${chartDims.margin.left + ','+ chartDims.height})`)
+                    .call(xAxis)
+               svg.append('g')
+                    .attr('class', 'y-axis')
+                    .attr('transform', `translate(${chartDims.margin.left},0)`)
+                    .call(yAxis)
+     
+               const line = d3.line<{ date: Date; val: number }>()
+                    .x(d => xScale(d.date))
+                    .y(d => yScale(d.val))
 
-          svg.append('g')
-               .attr('class', 'x-axis')
-               .attr('transform', `translate(${chartDims.margin.left + ','+ chartDims.height})`)
-               .call(xAxis)
-          svg.append('g')
-               .attr('class', 'y-axis')
-               .attr('transform', `translate(${chartDims.margin.left},0)`)
-               .call(yAxis)
+               svg.append('path').datum(data)
+                    .attr('transform', `translate(${chartDims.margin.left + ',0'})`)
+                    .attr('fill', 'none')
+                    .attr('stroke', 'steelblue')
+                    .attr('stroke-width', 1)
+                    .attr('d', line)
+               
+               // console.log('Line A = '+line)
+          },[svgRef])
 
-          const line = d3.line<{ date: Date; val: number }>()
-               .x(d => xScale(d.date))
-               .y(d => yScale(d.val))
-          svg.append('path').datum(data)
-               .attr('transform', `translate(${chartDims.margin.left + ',0'})`)
-               .attr('fill', 'none')
-               .attr('stroke', 'steelblue')
-               .attr('stroke-width', 1)
-               .attr('d', line)
-     },[svgRef])
+          useEffect(()=>{
+               d3.selectAll('.x-axis').remove()
+               d3.selectAll('.y-axis').remove()
+     
+               const svg = d3.select(svgRef.current)
+               svg.append('g')
+                    .attr('class', 'x-axis')
+                    .attr('transform', `translate(${chartDims.margin.left + ','+ chartDims.height})`)
+                    .call(xAxis)
+               svg.append('g')
+                    .attr('class', 'y-axis')
+                    .attr('transform', `translate(${chartDims.margin.left},0)`)
+                    .call(yAxis)
+          },[data])
 
-     useEffect(()=>{
-          d3.selectAll('.x-axis').remove()
-          d3.selectAll('.y-axis').remove()
+          return (
+               <div className='w-full h-full bg-red-200 flex flex-col justify-end'>
+                    {/* <button className="bg-blue-200"
+                         onClick={()=>{
+                              randItem(data, setData)
+                         }}
+                    >Generate Random</button> */}
+                    <button className="bg-blue-200"
+                         onClick={()=>{
+                              delLastItem(data, setData, dataID)
+                              setModifyDate(new Date(), dataID)
+                         }}
+                    >Remove Last Item</button>
+                    <svg
+                         ref={svgRef}
+                         height={dimensions.height}
+                         width={dimensions.width}
+                         overflow="visible"
+                         className='w-full bg-green-200'
+                    ></svg>
+               </div>
+               
+          )
+     }else{
+          return (
+               <div className='w-full h-full bg-red-200 flex flex-col justify-end'>
+                    No data is being rendered
+               </div>
+               
+          )
+     }
+     
 
-          const svg = d3.select(svgRef.current)
-          svg.append('g')
-               .attr('class', 'x-axis')
-               .attr('transform', `translate(${chartDims.margin.left + ','+ chartDims.height})`)
-               .call(xAxis)
-          svg.append('g')
-               .attr('class', 'y-axis')
-               .attr('transform', `translate(${chartDims.margin.left},0)`)
-               .call(yAxis)
-     },[data])
+     
 
-     return (
-          <div className='w-full h-full bg-red-200 flex flex-col justify-end'>
-               {/* <button className="bg-blue-200"
-                    onClick={()=>{
-                         randItem(data, setData)
-                    }}
-               >Generate Random</button>
-               <button className="bg-blue-200"
-                    onClick={()=>{
-                         delLastItem(data, setData)
-                    }}
-               >Remove Last Item</button> */}
-               <svg
-                    ref={svgRef}
-                    height={dimensions.height}
-                    width={dimensions.width}
-                    overflow="visible"
-                    className='w-full bg-green-200'
-               ></svg>
-          </div>
-          
-     )
+     
 }

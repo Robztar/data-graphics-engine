@@ -21,40 +21,30 @@ const delLastItem = (d:any, setD:any) =>{
      setD(sliced)
 }
 
-type OldNewProps = {
-     data: { name: string, units: number, fill: string }[],
-     setData: any,
-     dimensions:{
-          [key:string]:number
-     }
-}
-
-export const NewBar = (props: OldNewProps) => {
+export const NewBar = () => {
      const ref = useRef<SVGSVGElement | null>(null)
      const [sel, setSel] = useState<d3.Selection<SVGSVGElement | null, unknown, null, undefined> | null>(null)
      
-     // const dimensions = {
-     //      height: 600,
-     //      width: 700,
-     //      cHeight: 500,
-     //      cWidth: 600,
-     //      margin: 100,
-     // }
-     const dimensions = props.dimensions
+     const dimensions = {
+          height: 600,
+          width: 700,
+          cHeight: 500,
+          cWidth: 600,
+          margin: 100,
+     }
+     // const dimensions = props.dimensions
      const chartDims = {
           height: dimensions.height - 100, // chart height in px
           width: dimensions.width - 100, // chart width in px
           margin: 100, // chart margins
      }
-     // const [data,setData] = useState([
-     //      {name: 'Afoo', units: 20000, fill: 'green'},
-     //      {name: 'Efoo', units: 15000, fill: 'orange'},
-     //      {name: 'Ifoo', units: 40000, fill: 'yellow'},
-     //      {name: 'Ofoo', units: 6000, fill: 'purple'},
-     //      {name: 'Ufoo', units: 12000, fill: 'grey'},
-     // ])
-     const data = props.data
-     const setData = props.setData
+     const [data,setData] = useState([
+          {name: 'Afoo', units: 20000, fill: 'green'},
+          {name: 'Efoo', units: 15000, fill: 'orange'},
+          {name: 'Ifoo', units: 40000, fill: 'yellow'},
+          {name: 'Ofoo', units: 6000, fill: 'purple'},
+          {name: 'Ufoo', units: 12000, fill: 'grey'},
+     ])
      const maxDataVal = d3.max(data, d=> d.units)
 
      let yScale = d3.scaleLinear()

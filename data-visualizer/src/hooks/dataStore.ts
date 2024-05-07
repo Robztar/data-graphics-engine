@@ -3,13 +3,14 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 import { nanoid } from 'nanoid';
 
 interface DataStates {
-     dataSet: any
-     activeDataSet: string
-     addDataSet: (n: string) => void
-     setActiveDataSet: (id: string) => void
+     dataset: any
+     activeDataset: string
+     addDataset: (n: string, t: string, d: any[]) => void
+     setActiveDataset: (id: string) => void
+     setData: (d: any[], id: string) => void
      setModifyDate: (d: Date, id: string) => void
      setThumbnail: (t: string, id: string) => void
-     delDataSet: (id: string) => void
+     delDataset: (id: string) => void
 }
 
 const getOutfitData = (key:string) => localStorage.getItem(key);
@@ -17,15 +18,17 @@ const getOutfitData = (key:string) => localStorage.getItem(key);
 export const dataStore = create<DataStates>()(
      persist(
           (set) => ({
-               dataSet: getOutfitData('dataset') || [], 
-               activeDataSet: '',
+               dataset: getOutfitData('dataset') || [], 
+               activeDataset: '',
 
-               addDataSet: (name: string) => {
+               addDataset: (name: string, type: string, inData: any[]) => {
                     set((state:any) => ({
-                         dataSet: [...state.dataSet,
+                         dataset: [...state.dataset,
                               { 
                                    key: nanoid(),      // data field ID
                                    name: name,         // name of data
+                                   type: type,         // type of data
+                                   data: inData,       // the data
                                    dateCreated: new Date(),         // date created
                                    lastModified: new Date(),         // date last modified
                                    thumbnail: '',         // screenshot of the up to date project
@@ -33,12 +36,21 @@ export const dataStore = create<DataStates>()(
                          ]
                     }))
                },
-               setActiveDataSet: (active) => {
-                    set(() => ({ activeDataSet : active }))
+               setActiveDataset: (active) => {
+                    set(() => ({ activeDataset : active }))
+               },
+               setData: (modData, id) =>{
+                    set((state) =>({
+                         dataset: state.dataset.map((set:any) =>
+                              set.key === id
+                                   ? ({...set, data: modData})
+                                   : set
+                         ),
+                    }))
                },
                setModifyDate: (newDate, id) =>{
                     set((state) =>({
-                         dataSet: state.dataSet.map((set:any) =>
+                         dataset: state.dataset.map((set:any) =>
                               set.key === id
                                    ? ({...set, lastModified: newDate})
                                    : set
@@ -47,16 +59,16 @@ export const dataStore = create<DataStates>()(
                },
                setThumbnail: (newThumb, id) =>{
                     set((state) =>({
-                         dataSet: state.dataSet.map((set:any) =>
+                         dataset: state.dataset.map((set:any) =>
                               set.key === id
                                    ? ({...set, thumbnail: newThumb})
                                    : set
                          ),
                     }))
                },
-               delDataSet: (id: string) => {
+               delDataset: (id: string) => {
                     set((state) => ({
-                         dataSet: state.dataSet.filter((set:any) => set.key !== id)
+                         dataset: state.dataset.filter((set:any) => set.key !== id)
                     }));
                },
           }
