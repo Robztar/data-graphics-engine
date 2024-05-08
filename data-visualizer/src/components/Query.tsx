@@ -3,9 +3,44 @@ import { useNavigate } from "react-router-dom";
 
 import { dataStore } from "../hooks/dataStore"
 
+type EntryProps = {
+     dataEntry: { entry: string; entryData: any[] },
+}
+const DataInputBox = (props:EntryProps) =>{
+     let dataToEnter :string = ''
+     if(props.dataEntry.entryData.length > 0){
+          const keyNames = Object.keys(props.dataEntry.entryData[0])
+          for (const key of keyNames) {
+               dataToEnter += key + ', '
+          }
+          dataToEnter += ': '
+          props.dataEntry.entryData.map((entry:any) =>{
+               const keyNames = Object.keys(entry)
+               for (const key of keyNames) {
+                    dataToEnter += entry[key]+', '
+               }
+          })
+     }
+     
+     console.log('Data Entered: '+dataToEnter)
+     return(
+          <textarea 
+               name="text"
+               wrap="soft"
+               id='create-dataset-data'
+               className="w-3/4 h-48 px-1 rounded-md border-2 border-teal-500"
+               placeholder="Ex. 1,a 2,b 3,c ..."
+               defaultValue={dataToEnter}
+          ></textarea>
+     )
+}
+
+
 export const Query = () =>{
      const [active, setActive] = useState(false)
      const [goToNewProj, setNewProj] = useState(false)
+     // const [dataEntry, setDataEntry] = useState([{entry: 'raw'},{entryData: [] as any[]}])
+     const [dataEntry, setDataEntry] = useState<{ entry: string; entryData: any[] }>({ entry: 'raw', entryData: []})
      const navigate = useNavigate()
 
      const {dataset, addDataset} = dataStore()
@@ -82,39 +117,97 @@ export const Query = () =>{
                          </div>
                          
                          {/* Wizard I/O */}
-                         <div className="w-full flex items-center justify-center gap-1">
-                              <input className="rounded-l-lg border-2 border-teal-500" type="text" placeholder="Enter Data Here" />
+                         <div className="w-3/4 px-6 self-start flex flex-col items-start justify-center gap-1">
+                              <label className="pl-8">Dataset Name:</label>
+                              <input 
+                                   id='create-dataset-name'
+                                   className="w-1/2 px-1 rounded-md border-2 border-teal-500"
+                                   type='text'
+                                   defaultValue={'untitled '+(dataset.length+1)}
+                              />
+                              {/* Data Entry Type */}
+                              <hr className="bg-green-500 h-0.5 w-full" />
+                              <div className="w-full flex items-center justify-around">
+                                   <button
+                                        className={`${dataEntry.entry === 'raw' || dataEntry.entry === ''
+                                             ? 'bg-cyan-500':''}`}
+                                        onClick={()=>{
+                                             setDataEntry({entry: 'raw', entryData:[]})
+                                             // addDataset('Line dataset','trend', starterDataTrend)
+                                             // setNewProj(true)
+                                             // setActive(false)
+                                        }}
+                                   >Enter Raw Data</button>
+                                   <button
+                                        className={`${dataEntry.entry === 'defLine' || dataEntry.entry === ''
+                                        ? 'bg-cyan-500':''}`}
+                                        onClick={()=>{
+                                             setDataEntry(({entry: 'defLine', entryData: starterDataTrend}))
+                                             // addDataset('Line dataset','trend', starterDataTrend)
+                                             // setNewProj(true)
+                                             // setActive(false)
+                                        }}
+                                   >Generate Line Graph</button>
+                                   <button
+                                        className={`${dataEntry.entry === 'defBar' || dataEntry.entry === ''
+                                        ? 'bg-cyan-500':''}`}
+                                        onClick={()=>{
+                                             setDataEntry(({entry: 'defBar', entryData: starterDataItems}))
+                                             // addDataset('Bar dataset','items', starterDataItems)
+                                             // setNewProj(true)
+                                             // setActive(false)
+                                        }}
+                                   >Generate Bar Graph</button>
+                                   <button
+                                        onClick={()=>{
+                                             let name : string
+                                             name = (document.getElementById('create-dataset-name') as HTMLInputElement).value
+                                             if(name.length === 0){
+                                                  name = 'untitled '+(dataset.length+1)
+                                             }
+                                             addDataset(name,'survey', [])
+                                             setActive(false)
+                                             navigate("/survey")
+                                        }}
+                                   >Create Survey</button>
+                              </div>
+                              <hr className="bg-red-500 h-0.5 w-full" />
+
+                              <label className="pl-8">Enter Data:</label>
+                              <DataInputBox
+                                   dataEntry={dataEntry}
+                              />
+                              
                               <button 
-                                   className="rounded-r-lg rounded-l-none border-2 border-teal-500" 
+                                   className="rounded-lg px-2 py-0.5 border-2 border-teal-500" 
                                    onClick={()=>{
-                                        addDataset('2 dataset','trend', starterDataTrend)
-                                        setNewProj(true)
-                                        setActive(false)
+                                        let name : string
+                                        name = (document.getElementById('create-dataset-name') as HTMLInputElement).value
+                                        if(name.length === 0){
+                                             name = 'untitled '+(dataset.length+1)
+                                        }
+
+                                        if(dataEntry.entry === 'raw' || dataEntry.entry === ''){
+                                             let rawData = (document.getElementById('create-dataset-data') as HTMLInputElement).value
+                                             // pData : any[] = processyMagic(rawData)
+                                             // pDataType : string = typingMagic(pData)
+                                             // addDataset(name, pDataType, pData)
+                                             // setNewProj(true)
+                                             // setActive(false)
+                                        }else if(dataEntry.entry === 'defLine'){
+                                             addDataset(name,'trend', dataEntry.entryData)
+                                             setNewProj(true)
+                                             setActive(false)
+                                        }else if(dataEntry.entry === 'defBar'){
+                                             addDataset(name,'items', dataEntry.entryData)
+                                             setNewProj(true)
+                                             setActive(false)
+                                        }
+                                        // setNewProj(true)
+                                        // setActive(false)
                                    }}
                               >Enter</button>
                          </div>
-                         <div className='flex gap-2'>
-                              <button
-                                   onClick={()=>{
-                                        addDataset('Line dataset','trend', starterDataTrend)
-                                        setNewProj(true)
-                                        setActive(false)
-                                   }}
-                              >Trend Data</button>
-                              <button
-                                   onClick={()=>{
-                                        addDataset('Bar dataset','items', starterDataItems)
-                                        setNewProj(true)
-                                        setActive(false)
-                                   }}
-                              >Items Relational Data</button>
-                         </div>
-                         <button
-                              onClick={()=>{
-                                   setActive(false)
-                                   navigate("/survey")
-                              }}
-                         >Create Survey</button>
                     </div>
                     
                </div>
