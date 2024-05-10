@@ -1,46 +1,17 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { DataInputBox } from "./DataInputBox"
+
 import { dataStore } from "../hooks/dataStore"
 
-type EntryProps = {
-     dataEntry: { entry: string; entryData: any[] },
-}
-const DataInputBox = (props:EntryProps) =>{
-     let dataToEnter :string = ''
-     if(props.dataEntry.entryData.length > 0){
-          const keyNames = Object.keys(props.dataEntry.entryData[0])
-          for (const key of keyNames) {
-               dataToEnter += key + ', '
-          }
-          dataToEnter += ': '
-          props.dataEntry.entryData.map((entry:any) =>{
-               const keyNames = Object.keys(entry)
-               for (const key of keyNames) {
-                    dataToEnter += entry[key]+', '
-               }
-          })
-     }
-     
-     console.log('Data Entered: '+dataToEnter)
-     return(
-          <textarea 
-               name="text"
-               wrap="soft"
-               id='create-dataset-data'
-               className="w-3/4 h-48 px-1 rounded-md border-2 border-teal-500"
-               placeholder="Ex. 1,a 2,b 3,c ..."
-               defaultValue={dataToEnter}
-          ></textarea>
-     )
-}
+
 
 
 export const Query = () =>{
      const [active, setActive] = useState(false)
      const [goToNewProj, setNewProj] = useState(false)
-     // const [dataEntry, setDataEntry] = useState([{entry: 'raw'},{entryData: [] as any[]}])
-     const [dataEntry, setDataEntry] = useState<{ entry: string; entryData: any[] }>({ entry: 'raw', entryData: []})
+     const [dataEntry, setDataEntry] = useState<{ entry: string; entryData: any[] | string }>({ entry: 'raw', entryData: []})
      const navigate = useNavigate()
 
      const {dataset, addDataset} = dataStore()
@@ -93,10 +64,9 @@ export const Query = () =>{
                     query-float-cont ${active? 'h-full w-full active':'h-0 w-0'} 
                     absolute top-0 left-0`
                }>
+                    {/* Blur Overlay */}
                     <div className="float-bg-blur h-full w-full bg-slate-800 bg-opacity-60 backdrop-blur-sm"
-                         onClick={()=>{
-                              setActive(false)
-                         }}
+                         onClick={()=>setActive(false)}
                     ></div>
                     {/* Wizard Body */}
                     <div className={`
@@ -105,10 +75,8 @@ export const Query = () =>{
                          }
                     >
                          {/* Wizard Head */}
-                         <div className="w-full px-2 flex items-center border-b-red-200 border-b-2">
-                              <h1 className={`${active? 'h-10 w-full text-2xl':'h-0 w-0'}
-                                   text-right rounded-lg bg-yellow-50
-                              `}> Create New Viz</h1>
+                         <div className="w-full px-2 flex items-center justify-between border-b-red-200 border-b-2">
+                              <h1 className={`${active? 'h-10 text-2xl':'h-0 w-0'}`}> Create New Viz</h1>
                               <i className="fa fa-times-circle-o text-3xl cursor-pointer"
                                    onClick={()=>{
                                         setActive(false)
@@ -117,7 +85,7 @@ export const Query = () =>{
                          </div>
                          
                          {/* Wizard I/O */}
-                         <div className="w-3/4 px-6 self-start flex flex-col items-start justify-center gap-1">
+                         <div className="w-3/4 h-full px-6 flex flex-col items-center justify-center gap-1">
                               <label className="pl-8">Dataset Name:</label>
                               <input 
                                    id='create-dataset-name'
@@ -125,39 +93,27 @@ export const Query = () =>{
                                    type='text'
                                    defaultValue={'untitled '+(dataset.length+1)}
                               />
+                              <hr className="bg-green-500 h-0.5 w-full mt-4" />
+                              
                               {/* Data Entry Type */}
-                              <hr className="bg-green-500 h-0.5 w-full" />
                               <div className="w-full flex items-center justify-around">
                                    <button
                                         className={`${dataEntry.entry === 'raw' || dataEntry.entry === ''
                                              ? 'bg-cyan-500':''}`}
-                                        onClick={()=>{
-                                             setDataEntry({entry: 'raw', entryData:[]})
-                                             // addDataset('Line dataset','trend', starterDataTrend)
-                                             // setNewProj(true)
-                                             // setActive(false)
-                                        }}
+                                        onClick={()=> setDataEntry({entry: 'raw', entryData:[]})}
                                    >Enter Raw Data</button>
                                    <button
-                                        className={`${dataEntry.entry === 'defLine' || dataEntry.entry === ''
-                                        ? 'bg-cyan-500':''}`}
-                                        onClick={()=>{
-                                             setDataEntry(({entry: 'defLine', entryData: starterDataTrend}))
-                                             // addDataset('Line dataset','trend', starterDataTrend)
-                                             // setNewProj(true)
-                                             // setActive(false)
-                                        }}
+                                        className={`${dataEntry.entry === 'defLine'?'bg-cyan-500':''}`}
+                                        onClick={()=>setDataEntry(({entry: 'defLine', entryData: starterDataTrend}))}
                                    >Generate Line Graph</button>
                                    <button
-                                        className={`${dataEntry.entry === 'defBar' || dataEntry.entry === ''
-                                        ? 'bg-cyan-500':''}`}
-                                        onClick={()=>{
-                                             setDataEntry(({entry: 'defBar', entryData: starterDataItems}))
-                                             // addDataset('Bar dataset','items', starterDataItems)
-                                             // setNewProj(true)
-                                             // setActive(false)
-                                        }}
+                                        className={`${dataEntry.entry === 'defBar'?'bg-cyan-500':''}`}
+                                        onClick={()=>setDataEntry(({entry: 'defBar', entryData: starterDataItems}))}
                                    >Generate Bar Graph</button>
+                                   <button
+                                        className={`${dataEntry.entry === 'file'?'bg-cyan-500':''}`}
+                                        onClick={()=> setDataEntry({entry: 'file', entryData:[]})}
+                                   >Add File</button>
                                    <button
                                         onClick={()=>{
                                              let name : string
@@ -171,15 +127,16 @@ export const Query = () =>{
                                         }}
                                    >Create Survey</button>
                               </div>
-                              <hr className="bg-red-500 h-0.5 w-full" />
+                              <hr className="bg-red-500 h-0.5 w-full mb-4" />
 
-                              <label className="pl-8">Enter Data:</label>
+                              {/* Data Entry Box */}
                               <DataInputBox
                                    dataEntry={dataEntry}
+                                   setDataEntry={setDataEntry}
                               />
                               
                               <button 
-                                   className="rounded-lg px-2 py-0.5 border-2 border-teal-500" 
+                                   className={`${dataEntry.entry === 'file'? 'inactive':'rounded-lg px-2 py-0.5 border-2 border-teal-500'}`} 
                                    onClick={()=>{
                                         let name : string
                                         name = (document.getElementById('create-dataset-name') as HTMLInputElement).value
@@ -195,18 +152,18 @@ export const Query = () =>{
                                              // setNewProj(true)
                                              // setActive(false)
                                         }else if(dataEntry.entry === 'defLine'){
-                                             addDataset(name,'trend', dataEntry.entryData)
+                                             addDataset(name,'trend', dataEntry.entryData as any[])
                                              setNewProj(true)
                                              setActive(false)
                                         }else if(dataEntry.entry === 'defBar'){
-                                             addDataset(name,'items', dataEntry.entryData)
+                                             addDataset(name,'items', dataEntry.entryData as any[])
                                              setNewProj(true)
                                              setActive(false)
                                         }
                                         // setNewProj(true)
                                         // setActive(false)
                                    }}
-                              >Enter</button>
+                              >{dataEntry.entry === 'file'? '':'Enter'}</button>
                          </div>
                     </div>
                     
