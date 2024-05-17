@@ -3,29 +3,40 @@ import { useState } from 'react'
 // import uploadIcon from '../img/cloudupload-filled.png'
 import uploadIcon from '../img/cloudupload-line.png'
 import txtImg from '../img/txt-file.png'
-import pdfImg from '../img/pdf-file.png'
-// import docImg from '../img/doc-file.png'
-// import csvImg from '../img/csv-file.png'
+import csvImg from '../img/csv-file.png'
+import jsonImg from '../img/json-file.png'
 // import xlsImg from '../img/xls-file.png'
+// import docImg from '../img/doc-file.png'
+// import pdfImg from '../img/pdf-file.png'
 // From Icon8
 
 function upFile(file:any, setFileData: any){
      console.log(file)
-     let sType = file.type.split('/')[0]
+     // let genType = file.type.split('/')[0]
      setFileData('')
-     if(file.type === 'application/pdf'){
+     
+     if(file.type === 'application/json'){
           let fileRead = new FileReader()
           fileRead.readAsText(file)
           fileRead.onload = () => {
-               // if(fileRead.result && typeof(fileRead.result) === 'string'){
-               //      setFileData(fileRead.result)
-               //      // console.log(fileRead.result)
-               //      // alert(fileRead.result)
-               // }
+               console.log(fileRead.result)
+               if(fileRead.result && typeof(fileRead.result) === 'string'){
+                    setFileData(fileRead.result)
+               }
           }
      }
-     // if(file.type === 'text/plain' ){
-     if(sType === 'text'){
+     if(file.type === 'text/csv'){
+          let fileRead = new FileReader()
+          fileRead.readAsText(file)
+          fileRead.onload = () => {
+               console.log(fileRead.result)
+               if(fileRead.result && typeof(fileRead.result) === 'string'){
+                    setFileData(fileRead.result)
+               }
+          }
+     }
+     if(file.type === 'text/plain'){
+     // if(genType === 'text'){
           let fileRead = new FileReader()
           fileRead.readAsText(file)
           fileRead.onload = () => {
@@ -38,10 +49,8 @@ function upFile(file:any, setFileData: any){
      }
 }
 function typeCheck(type:string){
-     let sType = type.split('/')[0]
-     if(type === 'application/pdf' 
-     // || type === 'text/plain' 
-     || sType === 'text')
+     let genType = type.split('/')[0]
+     if(genType === 'text' || type === 'application/json')
           return true
 }
 
@@ -74,6 +83,7 @@ export const DataInputBox = (props:EntryProps) =>{
      const [fileName, setFileName] =  useState('')
      const [fileType, setFileType] =  useState('')
      const [fileData, setFileData] =  useState('')
+     const [fileSize, setFileSize] =  useState(0)
      const [uploaded, setUploaded] =  useState(false)
      let fileTypeImg =  ''
      
@@ -91,16 +101,19 @@ export const DataInputBox = (props:EntryProps) =>{
                                    setUploaded(true)
                                    setFileType(file.type)
                                    setFileName(file.name)
+                                   setFileSize(file.size)
                                    upFile(file, setFileData)
                               }
                          })
                     }
                }
           }
-          if(fileType === 'application/pdf')
-               fileTypeImg = pdfImg
-          if(fileType.split('/')[0] === 'text')
+          if(fileType === 'text/plain')
                fileTypeImg = txtImg
+          else if(fileType === 'text/csv')
+               fileTypeImg = csvImg
+          else if(fileType === 'application/json')
+               fileTypeImg = jsonImg
           // alert(fileName+': '+fileData)
      }
      
@@ -125,11 +138,6 @@ export const DataInputBox = (props:EntryProps) =>{
                {/* File data input */}
                {/* File upload + loading:  https://www.youtube.com/watch?v=lniUevJnEa4 */}
                {/* File loading: https://www.youtube.com/watch?v=HrK7RFNDTKA */}
-               {/* Embed PDF: 
-                    - https://www.youtube.com/watch?v=Ll7PA0dtpW0 
-                    - https://www.youtube.com/watch?v=b5Vdy4_xWVU
-               */}
-               {/* Extract Text from PDF: https://www.youtube.com/watch?v=enfZAaTRTKU */}
                
                <div className="file-entry rounded-xl bg-blue-50 w-full ">
                     {/* File Entry Area */}
@@ -161,11 +169,14 @@ export const DataInputBox = (props:EntryProps) =>{
                                                        setUploaded(true)
                                                        setFileType(item.type)
                                                        const file = item.getAsFile()
-                                                       if(file)
+                                                       if(file){
                                                             setFileName(file.name)
+                                                            setFileSize(file.size)
+                                                       }
                                                        upFile(file, setFileData)
                                                   }
                                                   // upFile(file, setFileData)
+                                                  // console.log('The file is '+ item.getAsFile()?.type)
                                              }
                                         })
                                    }
@@ -174,6 +185,7 @@ export const DataInputBox = (props:EntryProps) =>{
                                              if(typeCheck(file.type)){
                                                   setFileType(file.type)
                                                   setFileName(file.name)
+                                                  setFileSize(file.size)
                                                   upFile(file, setFileData)
                                              }
                                         })
@@ -202,7 +214,7 @@ export const DataInputBox = (props:EntryProps) =>{
                     {/* Uploaded File Info */}
                     <div id='uploaded-area' className={`
                          ${uploaded?'active':''}
-                         flex flex-col w-full h-full p-2 items-start justify-start gap-2.5
+                         flex flex-col w-1/2 h-full p-2 items-start justify-start gap-2.5
                     `}>
                          <h4 className="px-4 text-lg">Uploaded File</h4>
                          <div className='flex items-center justify-between w-full'>
@@ -210,28 +222,45 @@ export const DataInputBox = (props:EntryProps) =>{
                                    <img src={fileTypeImg} alt="file type" />
                               </div>
                               <div className='file-info flex flex-col w-full'>
-                                   <div className="file-name flex-col">
+                                   <div className="file-name items-center justify-between">
                                         <p>{fileName}</p>
-                                        <div className='items-center justify-between'>
+                                        {/* <div className='items-center justify-between'>
                                              <span>50%</span>
                                              <i className='fa fa-times p-0 cursor-pointer text-red-400'
                                                   onClick={()=>{
                                                        setUploaded(false)
                                                   }}
                                              ></i>
-                                        </div>
+                                        </div> */}
                                         
                                    </div>
-                                   <div className="file-progress w-full mt-0.5 rounded-lg bg-blue-200">
+                                   {/* <div className="file-progress w-full mt-0.5 rounded-lg bg-blue-200">
                                         <span className='block h-full rounded-lg'></span>
-                                   </div>
-                                   <small className="file-size">2.2MB</small>
+                                   </div> */}
+                                   <small className="file-size">
+                                        {fileSize < 1024? fileSize+' B':''}
+                                        {fileSize >= 1024 && fileSize < (1024**2)? (fileSize/1024).toFixed(2)+' KB':''}
+                                        {fileSize >= (1024**2)? (fileSize/(1024**2)).toFixed(2)+' MB':''}
+                                   </small>
                               </div>
+                              <i className='fa fa-times p-0 cursor-pointer text-red-400'
+                                   onClick={()=>{
+                                        setUploaded(false)
+                                   }}
+                              ></i>
                          </div>
-                         <div>{fileData}</div>
                          <button 
                               onClick={()=>{
-                                   props.setDataEntry({entry: 'raw', entryData: fileData})
+                                   // Do checks on the data, segmentation, etc.
+                                   // If csv type, send to new spreadsheet page for further processing
+                                   if(fileType === 'text/plain')
+                                        props.setDataEntry({entry: 'raw', entryData: fileData})
+                                   else if(fileType === 'text/csv')
+                                        props.setDataEntry({entry: 'csv', entryData: fileData})
+                                   else if(fileType === 'application/json')
+                                        props.setDataEntry({entry: 'json', entryData: fileData})
+                                   else
+                                        alert('Sorry this data cannot be processed')
                                    setUploaded(false)
                                    setFileData('')
                                    setFileData('')

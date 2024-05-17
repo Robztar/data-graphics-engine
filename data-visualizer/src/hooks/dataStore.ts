@@ -8,6 +8,7 @@ interface DataStates {
      addDataset: (n: string, t: string, d: any[]) => void
      setActiveDataset: (id: string) => void
      setData: (d: any[], id: string) => void
+     setDataType: (d: any[], id: string) => void
      setModifyDate: (d: Date, id: string) => void
      setThumbnail: (t: string, id: string) => void
      delDataset: (id: string) => void
@@ -44,6 +45,15 @@ export const dataStore = create<DataStates>()(
                          dataset: state.dataset.map((set:any) =>
                               set.key === id
                                    ? ({...set, data: modData})
+                                   : set
+                         ),
+                    }))
+               },
+               setDataType: (modDataType, id) =>{
+                    set((state) =>({
+                         dataset: state.dataset.map((set:any) =>
+                              set.key === id
+                                   ? ({...set, type: modDataType})
                                    : set
                          ),
                     }))

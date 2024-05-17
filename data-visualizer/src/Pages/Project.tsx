@@ -95,7 +95,7 @@ const DataDrivenOutput = (props:any) =>{
           return(
                <div id="project-page" className="h-screen w-screen flex items-center p-2 pt-20">
                     <Nav />
-                    <div className='w-full h-full bg-purple-300 flex flex-col'>
+                    <div className='w-full h-full bg-red-300 flex flex-col'>
                          <p>Sorry this data does not exist :(</p>
                     </div>
                </div>

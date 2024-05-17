@@ -56,7 +56,10 @@ export const Dash = () =>{
                                    className="dash-card-cont"
                                    key={orderedKey}
                               >
-                                   <Link to={`/proj?id=${orderedKey}`} className="proj-tile-title">
+                                   <Link to={`/${orderedInst.type === 'items' || orderedInst.type === 'trend'
+                                        ?'proj?id='+orderedKey
+                                        :'setup?id='+orderedKey
+                                   }`} className="proj-tile-title">
                                         <div className="dash-body bg-teal-400 w-56 h-56 rounded-lg cursor-pointer flex flex-col items-center justify-center">
                                              <p>{projName}</p>
                                              <small>{dateString}</small>

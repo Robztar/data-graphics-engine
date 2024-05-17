@@ -41,7 +41,13 @@ export const Query = () =>{
                const lastData = dataset.length-1
                const dataKey = dataset[lastData].key
                console.log('Zustand Last Data is: ' + dataKey) 
-               navigate(`/proj?id=${dataKey}`)
+               if(dataEntry.entry === 'raw' 
+                    || dataEntry.entry === 'csv'
+                    || dataEntry.entry === 'json'
+               )
+                    navigate(`/setup?id=${dataKey}`)
+               else
+                    navigate(`/proj?id=${dataKey}`)
           }
           setNewProj(false)
      }else{
@@ -99,7 +105,10 @@ export const Query = () =>{
                               <div className="w-full flex items-center justify-around">
                                    <button
                                         className={`${dataEntry.entry === 'raw' || dataEntry.entry === ''
-                                             ? 'bg-cyan-500':''}`}
+                                             ? 'bg-cyan-500':''}
+                                             ${dataEntry.entry === 'csv' || dataEntry.entry === 'json' 
+                                             ? 'bg-purple-500':''}
+                                             `}
                                         onClick={()=> setDataEntry({entry: 'raw', entryData:[]})}
                                    >Enter Raw Data</button>
                                    <button
@@ -144,13 +153,27 @@ export const Query = () =>{
                                              name = 'untitled '+(dataset.length+1)
                                         }
 
-                                        if(dataEntry.entry === 'raw' || dataEntry.entry === ''){
-                                             let rawData = (document.getElementById('create-dataset-data') as HTMLInputElement).value
-                                             // pData : any[] = processyMagic(rawData)
-                                             // pDataType : string = typingMagic(pData)
-                                             // addDataset(name, pDataType, pData)
-                                             // setNewProj(true)
-                                             // setActive(false)
+                                        if(dataEntry.entry === 'raw' 
+                                             || dataEntry.entry === 'csv'
+                                             || dataEntry.entry === 'json'
+                                        ){
+                                             let dataInput = (document.getElementById('create-dataset-data') as HTMLInputElement).value
+                                             addDataset(name, dataEntry.entry, [dataInput])
+                                             setNewProj(true)
+                                             setActive(false)
+                                        // }else if(dataEntry.entry === 'csv'){
+                                        //      let csvData = (document.getElementById('create-dataset-data') as HTMLInputElement).value
+                                             
+                                        //      // pData : any[] = processyMagic(rawData)
+                                        //      // pDataType : string = typingMagic(pData)
+                                             
+                                        // }else if(dataEntry.entry === 'json'){
+                                        //      let jsonData = (document.getElementById('create-dataset-data') as HTMLInputElement).value
+                                        //      // pData : any[] = processyMagic(rawData)
+                                        //      // pDataType : string = typingMagic(pData)
+                                        //      // addDataset(name, pDataType, pData)
+                                        //      // setNewProj(true)
+                                        //      // setActive(false)
                                         }else if(dataEntry.entry === 'defLine'){
                                              addDataset(name,'trend', dataEntry.entryData as any[])
                                              setNewProj(true)
