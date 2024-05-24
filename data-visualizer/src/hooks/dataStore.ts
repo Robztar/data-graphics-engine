@@ -8,7 +8,7 @@ interface DataStates {
      addDataset: (n: string, t: string, d: any[]) => void
      setActiveDataset: (id: string) => void
      setData: (d: any[], id: string) => void
-     setDataType: (d: any[], id: string) => void
+     setDataType: (t: string, id: string) => void
      setModifyDate: (d: Date, id: string) => void
      setThumbnail: (t: string, id: string) => void
      delDataset: (id: string) => void

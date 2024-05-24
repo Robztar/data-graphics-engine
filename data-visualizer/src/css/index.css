@@ -161,11 +161,90 @@ button:hover {
   border-radius: 5px;
 }
 
+.sheet-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  padding: 0.1rem 0;
+  width: 1.5rem;
+  cursor: pointer;
+  transition: 0.25s;
+}
+.sheet-nav-btn * {
+  cursor: pointer;
+}
+.sheet-nav-btn i {
+  font-size: 1.1rem;
+}
+.sheet-nav-btn button {
+  width: 0;
+  overflow: hidden;
+  transition: 0.25s ease-in;
+}
+
+.sheet-nav-btn:hover {
+  width: 4.5rem;
+  gap: 0.15rem;
+  background: rgba(157, 157, 157, 0.2509803922);
+  transition: 0.25s;
+}
+.sheet-nav-btn:hover button {
+  width: -moz-fit-content;
+  width: fit-content;
+  transition: 0.25s ease-in;
+}
+
+.sheet-nav-btn.inactive {
+  color: #9ca3af;
+  cursor: default;
+}
+.sheet-nav-btn.inactive i {
+  cursor: default;
+}
+
+.sheet-nav-btn.inactive:hover {
+  width: 1.5rem;
+  gap: 0;
+  background: transparent;
+}
+.sheet-nav-btn.inactive:hover button {
+  width: 0;
+}
+
+.sheet-nav-btn.delete:hover {
+  background: rgba(255, 0, 0, 0.2509803922);
+  color: #ff3232;
+  width: 5rem;
+}
+
+.sheet-nav-save {
+  transition: 0.25s;
+}
+.sheet-nav-save i {
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.sheet-nav-save:hover {
+  background: #00c8a0;
+  scale: 1.05;
+  transition: 0.25s;
+}
+.sheet-nav-save:hover * {
+  scale: 1;
+}
+
 .sheet-table-cont {
+  position: relative;
   width: 100%;
   height: calc(100vh - 8rem);
   overflow: scroll;
   box-sizing: border-box;
+}
+.sheet-table-cont table {
+  height: -moz-fit-content;
+  height: fit-content;
 }
 .sheet-table-cont ::-webkit-scrollbar {
   width: 0.125rem;
@@ -185,4 +264,68 @@ table textarea {
   outline: none;
   box-shadow: none;
   resize: none;
+}
+
+table .head {
+  position: sticky;
+  padding-top: 1.5rem;
+  top: 0;
+  z-index: 1;
+}
+table .head textarea {
+  display: flex;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+}
+
+.row-del-btn-head, .row-del-cont {
+  position: sticky;
+  left: 0rem;
+  z-index: 2;
+  width: 1.5rem;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  background: white;
+}
+
+.column-del-btn, .row-del-btn {
+  color: #ff9b9b;
+  visibility: hidden;
+  opacity: 0;
+  height: 1rem;
+  width: 1rem;
+  display: grid;
+  place-items: center;
+  transition: 0.25s;
+}
+
+.column-del-btn:hover, .row-del-btn:hover {
+  color: #ff3232;
+  scale: 1.05;
+  transition: 0.25s;
+}
+
+.column-del-btn.active, .row-del-btn.active {
+  visibility: visible;
+  opacity: 1;
+  transition: 0.25s;
+}
+
+.column-del-btn {
+  position: absolute;
+  top: 0.25rem;
+  left: calc(50% - 0.5rem);
+}
+
+.sheet-table-cont .body-cell textarea {
+  height: 100%;
+  border: solid 1px black;
+  display: grid;
+  transition: 0.25s;
+}
+.sheet-table-cont .body-cell textarea:hover {
+  border-radius: 10px;
+  transition: 0.25s;
 }/*# sourceMappingURL=index.css.map */
