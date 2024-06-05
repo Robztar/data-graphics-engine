@@ -10,22 +10,17 @@ export const StartSheet=()=>{
      const {dataset, setData, setDataType, delDataset} = dataStore()
      const [curRow, setCurRow] = useState(-1)
      const [curCol, setCurCol] = useState(-1)
-     const [undoLen, setUndoLen] = useState(0)
-     // const [undoActive, setUndoActive] = useState(false)
-     // const [undoArr, setUndo] = useState<{ row: number, col: number, arr: [] }[]>([
-     //      // {row : -1, col: -1, arr: []}
-     // ])
+     const [undoArr, setUndo] 
+          = useState<{ row: number, col: number, arr: any[] }[]>([])
      // const [redoArr, setRedo] = useState<{ [key:string]: any }[]>([
      //      {row : -1, col: -1, arr: []}
      // ])
 
-     
-
      const navigate = useNavigate()
+
      // Query String
      const [queryId, setQueryId] = useState('')
      
-
      useEffect(()=>{
           if(window.location.search){
                let qSearch = window.location.search.substring(1)
@@ -39,21 +34,10 @@ export const StartSheet=()=>{
      const [headers, setHeaders] = useState<any[]>([])
      const [body, setBody] = useState<any[]>([])
      const [fields, setFields] = useState<any[]>([])
-     const [bodyCol, setBodyCol] = useState<any[]>([])
-     
-     // const [upDataset, setUpDSet] = useState<{ [key:string]: any }> ({
-     //      header : [],
-     //      values : [],
-     // })
      const upDataset = useRef<{ [key:string]: any }> ({
           header : [],
           values : [],
      })
-     // let upDataset : { [key:string]: any }[] = [{
-     //      header : [],
-     //      values : [],
-     // }]
-     let undoArr : { row: number, col: number, arr: any[] }[] =[]
 
      useEffect(()=>{
           if(dataInst){
@@ -70,7 +54,6 @@ export const StartSheet=()=>{
                     const DELIMITER = ','
                     const NEWLINE = '\n'
                     const csvBody = csvData.split(NEWLINE)
-                    // headers = body.shift()?.trim().split(DELIMITER)
                     
                     setHeaders(csvBody.shift()?.trim().split(DELIMITER))
                     setBody(csvBody)
@@ -121,13 +104,7 @@ export const StartSheet=()=>{
                     setHeaders(headersConv)
                     setBody(bodyConv)
      
-                    // - Table doesn't refresh on reload
-                    // Idea! - Instead of sending info to dataStore
-                         // - use setHeaders() and setBody() directly
-                         // - avoid all the state dataInst.type
-                         // - may still use this code to do that
-                    // Also move undo variable (undoArr) to state
-                         // and make it actually work
+                    // - avoid all the state dataInst.type (maybe)
                }
           }
      },[dataInst])
@@ -144,7 +121,7 @@ export const StartSheet=()=>{
                     const regex = /((?:^|,)(\"(?:[^\"]+|\"\")*\"|[^,]*))/g
                     // executing match against regex
                     // also removing all quotes and starting commas
-                    columns = bod.match(regex)?.map((item:any) => item.replace(/"/g, '').replace(/^,/, '').trim());
+                    columns = bod.match(regex)?.map((item:any) => item.replace(/"/g, '').replace(/^,/, '').trim())
                     // setBodyCol(columns)
                }
                if(dataInst.type === 'state')
@@ -152,23 +129,8 @@ export const StartSheet=()=>{
 
                datasetTemp.push(columns)
           })}
-          // setUpDSet({
-          //      header : headers,
-          //      values : datasetTemp,
-          // })
-          if(bodyCol.length <= 0)
-               setBodyCol(datasetTemp)
-
-          upDataset.current = ({
-               header : headers,
-               values : bodyCol,
-          })
-          
-          console.log('Data')
-          console.log(upDataset)
-
-          // Double Check everything is stable,
-               // Then clean up!
+          if(fields.length <= 0)
+               setFields(datasetTemp)
 
           headers.forEach((h:any, i:number)=>{
                const insertCol = document.getElementsByClassName('head col-'+i)
@@ -177,7 +139,7 @@ export const StartSheet=()=>{
                     insertVal.value = h
                }
           })
-          bodyCol.forEach((b:any, i:number)=>{
+          fields.forEach((b:any, i:number)=>{
                const insertRow = document.getElementsByClassName('row-'+i)
                
                if(insertRow){
@@ -190,26 +152,40 @@ export const StartSheet=()=>{
                     }
                }
           })
-     },[headers, bodyCol])
+     },[headers, fields])
 
      if(dataInst){
           let unique = dataInst.key
           const handleRemoveColumn = (index: number) => {
-               const updatedHeaders = headers.filter((_, i) => i !== index);
-               const updatedValues = bodyCol.map((row:any) =>
+               const updatedHeaders = headers.filter((_, i) => i !== index)
+               const updatedValues = fields.map((row:any) =>
                     row.filter((_:any, i:number) => i !== index)
-               );
-               setHeaders(updatedHeaders);
-               setBodyCol(updatedValues);
-               upDataset.current = ({
-                    header: updatedHeaders,
-                    values: updatedValues,
-               });
+               )
+               setHeaders(updatedHeaders)
+               setFields(updatedValues)
                
-               // console.log('temp')
-               // console.log(updatedHeaders)
-               // console.log(updatedValues)
-               // console.log(upDataset.current)
+               let undoList = {row : -1, col: index, arr: [] as any[]}
+               const undoCol = document.getElementsByClassName('col-'+index)
+               for (let c = 0; c < undoCol.length; c++) {
+                    const undoCell = undoCol[c].querySelector('textarea') as HTMLTextAreaElement
+                    if(undoCell)
+                         undoList.arr.push(undoCell.value)
+               }
+               setUndo([...undoArr, undoList])
+          }
+          const handleRemoveRow = (index: number) => {
+               const updatedValues = fields.filter((_:any, i:number) => i !== index)
+               setFields(updatedValues)
+
+               let undoList = {row : index, col: -1, arr: [] as any[]}
+               const undoRow = document.getElementsByClassName('row-'+index)
+               const undoCells = undoRow[0].getElementsByClassName('body-cell')
+               for (let c = 0; c < undoCells.length; c++) {
+                    const cellVal = undoCells[c].querySelector('textarea') as HTMLTextAreaElement
+                    if(cellVal)
+                         undoList.arr.push(cellVal.value)
+               }
+               setUndo([...undoArr, undoList])
           }
           const updateTempDataset = (upDataset : any) =>{
                const tempDS = upDataset
@@ -223,36 +199,66 @@ export const StartSheet=()=>{
                <div id="start-sheet-page" className="h-full w-full flex flex-col items-center p-2 pt-20">
                          <Nav />
                          <div className='bg-slate-200 w-full py-0.5 px-8 flex items-center justify-between'>
-                              {/* Mimic style of the navbar */}
+                              {/* Local Nav */}
                               <h2 className='h-10 text-2xl bg-yellow-400 flex items-center'>{dataInst.name}</h2>
                               <div className='flex items-center justify-around gap-8'>
-                                   <div className={`sheet-nav-btn ${undoLen <= 0? 'inactive':''}`}
+                                   <div className={`sheet-nav-btn ${undoArr.length <= 0? 'inactive':''}`}
                                         onClick={()=>{
-                                             let returnArr = undoArr.pop()
-                                             // if(returnArr){
-                                             //      let returnCol = returnArr.col
-                                             //      let returnRow = returnArr.row
-                                             //      let returnHeader = returnArr.arr[0]
-                                             //      let returnBody = returnArr.arr.slice(1)
-                                             //      if(returnCol >= 0 && returnRow < 0)
-                                             //           upDataset.splice(returnCol, 0, {
-                                             //                header : returnHeader,
-                                             //                values : returnBody
-                                             //           })
-                                             //      if(returnRow >= 0 && returnCol < 0){
-                                             //           // upDataset.splice(returnRow?, 0, {
-                                             //           //      header : returnHeader,
-                                             //           //      values : returnBody
-                                             //           // })
-                                             //      }
-                                             //      updateTempDataset(upDataset)
-                                             // }
+                                             if(undoArr.length > 0){
+                                                  let undoList:any = []
+                                                  undoArr.forEach((u:any)=>{
+                                                       undoList.push(u)
+                                                  })
+                                                  let returnArr = undoList.pop()
+                                                  if(returnArr){
+                                                       let returnCol = returnArr.col
+                                                       let returnRow = returnArr.row
+                                                       
+                                                       if(returnCol >= 0 && returnRow < 0){
+                                                            let headerTemp:any = []
+                                                            let fieldsTemp :any = []
+                                                            headers.forEach((h)=>{
+                                                                 headerTemp.push(h)
+                                                            })
+                                                            fields.forEach((f, i)=>{
+                                                                 fieldsTemp.push([])
+                                                                 f.forEach((c:any)=>{
+                                                                      fieldsTemp[i].push(c)
+                                                                 })
+                                                            })
+                                                            returnArr.arr.forEach((col:any, i:number) =>{
+                                                                 if(i === 0)
+                                                                      headerTemp.splice(returnCol, 0, col)
+                                                                 else
+                                                                      fieldsTemp[i-1].splice(returnCol, 0, col)
+                                                            })
+                                                            setHeaders(headerTemp)
+                                                            setFields(fieldsTemp)
+                                                       }
+                                                       if(returnRow >= 0 && returnCol < 0){
+                                                            let fieldsTemp :any = []
+                                                            let colTemp :any = []
+                                                            fields.forEach((f, i)=>{
+                                                                 fieldsTemp.push([])
+                                                                 f.forEach((c:any)=>{
+                                                                      fieldsTemp[i].push(c)
+                                                                 })
+                                                            })
+                                                            returnArr.arr.forEach((col:any) =>{
+                                                                 colTemp.push(col)
+                                                            })
+                                                            fieldsTemp.splice(returnRow, 0, colTemp)
+                                                            setFields(fieldsTemp)
+                                                       }
+                                                  }
+                                                  setUndo(undoList)
+                                             }
                                         }}
                                    >
                                         <i className="fa-solid fa-arrow-rotate-left"></i>
                                         <button>Undo</button>
                                    </div>
-                                   <div className='sheet-nav-btn'>
+                                   <div className='sheet-nav-btn inactive'>
                                         <i className="fa-solid fa-arrow-rotate-right"></i>
                                         <button>Redo</button>
                                    </div>
@@ -266,7 +272,42 @@ export const StartSheet=()=>{
                                         <button>Delete</button>
                                    </div>
                                    
-                                   <div className='sheet-nav-save bg-teal-400 rounded-xl cursor-pointer flex items-center gap-1 py-0.5 px-2'>
+                                   <div className='sheet-nav-save bg-teal-400 rounded-xl cursor-pointer flex items-center gap-1 py-0.5 px-2'
+                                        onClick={()=>{
+                                             const upHeaders :any = []
+                                             const upValues: any = []
+                                             headers.forEach((_, i)=>{
+                                                  const insertCol = document.getElementsByClassName('head col-'+i)
+                                                  if(insertCol){
+                                                       const insertVal = insertCol[0].querySelector('textarea') as HTMLTextAreaElement
+                                                       upHeaders.push(insertVal.value)
+                                                  }
+                                             })
+                                             fields.forEach((b:any, i:number)=>{
+                                                  const insertRow = document.getElementsByClassName('row-'+i)
+                                                  
+                                                  if(insertRow){
+                                                       const rowCells = insertRow[0].getElementsByClassName('body-cell')
+                                                       upValues.push([])
+                                                       for (let c = 0; c < rowCells.length; c++) {
+                                                            const insertCell = insertRow[0].querySelector('.col-'+c)
+                                                            const insertVal = insertCell?.querySelector('textarea') as HTMLTextAreaElement
+                                                            if(insertVal)
+                                                                 upValues[i].push(insertVal.value)
+                                                       }
+                                                  }
+                                             })
+                                             upDataset.current = ({
+                                                  header : upHeaders,
+                                                  values : upValues,
+                                             })
+                                             console.log('upDataset')
+                                             console.log(upDataset.current)
+                                             
+                                             // updateTempDataset(upDataset)
+                                             // navigate(`/proj?id=${unique}`)
+                                        }}
+                                   >
                                         <button>Save and Proceed</button>
                                         <i className="fa-solid fa-right-to-bracket"></i>
                                    </div>
@@ -288,27 +329,16 @@ export const StartSheet=()=>{
                                                        >
                                                             <i className={`fa fa-minus-circle column-del-btn cursor-pointer
                                                                  ${curCol === i?'active' : ''}`}
-                                                                 onClick={()=>{
-                                                                      undoArr.push({row : -1, col: i, arr: []})
-                                                                      if(undoArr[undoArr.length-1].arr){
-                                                                           const undoCol = document.getElementsByClassName('col-'+i)
-                                                                           for (let c = 0; c < undoCol.length; c++) {
-                                                                                const undoCell = undoCol[c].querySelector('textarea') as HTMLTextAreaElement
-                                                                                if(undoCell)
-                                                                                     undoArr[undoArr.length-1].arr.push(undoCell.value)
-                                                                           }
-                                                                           handleRemoveColumn(i)
-                                                                      }
-                                                                      setUndoLen(undoArr.length)
-                                                                      // updateTempDataset(upDataset)
-                                                                 }}
+                                                                 onClick={()=>{ handleRemoveColumn(i) }}
                                                             ></i>
                                                             <textarea 
                                                                  name="text"
                                                                  wrap="soft"
                                                                  className="h-8 w-48 border"
-                                                                 // defaultValue={h}
-                                                                 // defaultValue={headers[i]}
+                                                                 // if I edit a field then update state the updated field
+                                                                      // goes back to original
+                                                                 // Make header input on change
+                                                                 // onChange={handleTextChange(h, i)}
                                                             ></textarea>
                                                        </th>
                                                   )
@@ -318,7 +348,7 @@ export const StartSheet=()=>{
 
                                    {/* Table Body */}
                                    <tbody>
-                                        {bodyCol.map((bod , i) =>{
+                                        {fields.map((bod , i) =>{
                                              if(bod === '') return
                                              let columns : any[] = bod
                                              
@@ -333,12 +363,11 @@ export const StartSheet=()=>{
                                                             }}
                                                        >
                                                             <i className={`fa fa-minus-circle row-del-btn cursor-pointer 
-                                                                 ${curRow === i?'active' : ''}`}></i>
+                                                                 ${curRow === i?'active' : ''}`}
+                                                                 onClick={()=>{ handleRemoveRow(i) }}
+                                                            ></i>
                                                        </td>
                                                        {columns.map((_ , inCol) =>{
-                                                            // upDataset[inCol].values.push(col)
-                                                            // console.log('column')
-                                                            // console.log(bodyCol[inCol])
                                                             return(
                                                                  <td key={inCol} className={`body-cell col-${inCol}`}
                                                                       onMouseEnter={()=>{
@@ -354,7 +383,6 @@ export const StartSheet=()=>{
                                                                            name="text"
                                                                            wrap="soft"
                                                                            className="h-12 w-48"
-                                                                           // defaultValue={col}
                                                                       ></textarea>
                                                                  </td>
                                                             )
