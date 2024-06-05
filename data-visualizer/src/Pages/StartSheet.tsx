@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from "react-router-dom";
-import {Link} from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from "react-router-dom"
 
 import { Nav } from "../components/Nav"
 import { dataStore } from "../hooks/dataStore"
@@ -36,91 +35,181 @@ export const StartSheet=()=>{
      },[queryId])
 
      let dataInst = dataset.find((d:any) => d.key === queryId)
+     
+     const [headers, setHeaders] = useState<any[]>([])
+     const [body, setBody] = useState<any[]>([])
+     const [fields, setFields] = useState<any[]>([])
+     const [bodyCol, setBodyCol] = useState<any[]>([])
+     
+     // const [upDataset, setUpDSet] = useState<{ [key:string]: any }> ({
+     //      header : [],
+     //      values : [],
+     // })
+     const upDataset = useRef<{ [key:string]: any }> ({
+          header : [],
+          values : [],
+     })
+     // let upDataset : { [key:string]: any }[] = [{
+     //      header : [],
+     //      values : [],
+     // }]
+     let undoArr : { row: number, col: number, arr: any[] }[] =[]
+
+     useEffect(()=>{
+          if(dataInst){
+               if(dataInst.type === 'raw'){
+                    let rawData = (document.getElementById('create-dataset-data') as HTMLInputElement).value
+                    console.log(rawData)
+                    // pData : any[] = processyMagic(rawData)
+                    // pDataType : string = typingMagic(pData)
+                    // addDataset(name, pDataType, pData)
+                    // setNewProj(true)
+                    // setActive(false)
+               }else if(dataInst.type === 'csv'){
+                    let csvData = dataInst.data[0]
+                    const DELIMITER = ','
+                    const NEWLINE = '\n'
+                    const csvBody = csvData.split(NEWLINE)
+                    // headers = body.shift()?.trim().split(DELIMITER)
+                    
+                    setHeaders(csvBody.shift()?.trim().split(DELIMITER))
+                    setBody(csvBody)
+                    headers.forEach((h)=>{
+                         let ht = h.trim()
+                         if(!ht) return
+                    })
+                    body.forEach((b)=>{
+                         let bod = b.trim()
+                         if(!bod) return
+                    })
+     
+                    // Set data types based on the number of columns 
+                         // and the types of values within the columns
+                    // Current types - 'items' & 'trend' will likely
+                         // not be enough
+                    // pDataType : string = typingMagic(pData)
+     
+                    // Also maybe change data updating from data sent directly,
+                         // to the <textarea> value
+                    // Also implement column removal code
+                    
+               }else if(dataInst.type === 'json'){
+                    let jsonData = (document.getElementById('create-dataset-data') as HTMLInputElement).value
+                    console.log(jsonData)
+                    // pData : any[] = processyMagic(rawData)
+                    // pDataType : string = typingMagic(pData)
+                    // addDataset(name, pDataType, pData)
+                    // setNewProj(true)
+                    // setActive(false)
+               }else if(dataInst.type === 'state'){
+                    // console.log(dataInst)
+                    let headersConv : any[] = []
+                    dataInst.data.forEach((d:any) => {
+                         headersConv.push(d.header)
+                    })
+
+                    let n:number = dataInst.data[0].header.length
+                    let bodyConv : any[] = []
+                    for(let a = 0; a<n; a++){
+                         let x:number = dataInst.data.length
+                         let bodArr = []
+                         for(let b = 0; b<x; b++){
+                              bodArr.push(dataInst.data[b].values[a])
+                         }
+                         bodyConv.push(bodArr)
+                    }
+                    setHeaders(headersConv)
+                    setBody(bodyConv)
+     
+                    // - Table doesn't refresh on reload
+                    // Idea! - Instead of sending info to dataStore
+                         // - use setHeaders() and setBody() directly
+                         // - avoid all the state dataInst.type
+                         // - may still use this code to do that
+                    // Also move undo variable (undoArr) to state
+                         // and make it actually work
+               }
+          }
+     },[dataInst])
+
+     useEffect(()=>{
+          let datasetTemp : any[] = []
+          {body.map((bod) =>{
+               if(bod === '') return
+               let columns : any[] = []
+
+               if(dataInst.type === 'csv'){
+                    // regular experession to separate strings by commas,
+                    // while leaving strings within enclosing quotes intact
+                    const regex = /((?:^|,)(\"(?:[^\"]+|\"\")*\"|[^,]*))/g
+                    // executing match against regex
+                    // also removing all quotes and starting commas
+                    columns = bod.match(regex)?.map((item:any) => item.replace(/"/g, '').replace(/^,/, '').trim());
+                    // setBodyCol(columns)
+               }
+               if(dataInst.type === 'state')
+                    columns = bod
+
+               datasetTemp.push(columns)
+          })}
+          // setUpDSet({
+          //      header : headers,
+          //      values : datasetTemp,
+          // })
+          if(bodyCol.length <= 0)
+               setBodyCol(datasetTemp)
+
+          upDataset.current = ({
+               header : headers,
+               values : bodyCol,
+          })
+          
+          console.log('Data')
+          console.log(upDataset)
+
+          // Double Check everything is stable,
+               // Then clean up!
+
+          headers.forEach((h:any, i:number)=>{
+               const insertCol = document.getElementsByClassName('head col-'+i)
+               if(insertCol){
+                    const insertVal = insertCol[0].querySelector('textarea') as HTMLTextAreaElement
+                    insertVal.value = h
+               }
+          })
+          bodyCol.forEach((b:any, i:number)=>{
+               const insertRow = document.getElementsByClassName('row-'+i)
+               
+               if(insertRow){
+                    const rowCells = insertRow[0].getElementsByClassName('body-cell')
+                    for (let c = 0; c < rowCells.length; c++) {
+                         const insertCell = insertRow[0].querySelector('.col-'+c)
+                         const insertVal = insertCell?.querySelector('textarea') as HTMLTextAreaElement
+                         if(insertVal)
+                              insertVal.value = b[c]
+                    }
+               }
+          })
+     },[headers, bodyCol])
+
      if(dataInst){
           let unique = dataInst.key
-          let headers : any[] = []
-          let body : any[] = []
-          let upDataset : { [key:string]: any }[] = [{
-               header : 'remove-this-header',
-               values : [],
-          }]
-          let undoArr : { row: number, col: number, arr: any[] }[] =[]
-          
-          if(dataInst.type === 'raw'){
-               let rawData = (document.getElementById('create-dataset-data') as HTMLInputElement).value
-               console.log(rawData)
-               // pData : any[] = processyMagic(rawData)
-               // pDataType : string = typingMagic(pData)
-               // addDataset(name, pDataType, pData)
-               // setNewProj(true)
-               // setActive(false)
-          }else if(dataInst.type === 'csv'){
-               let csvData = dataInst.data[0]
-               const DELIMITER = ','
-               const NEWLINE = '\n'
-               body = csvData.split(NEWLINE)
-               headers = body.shift()?.trim().split(DELIMITER)
-               headers.forEach((h)=>{
-                    let ht = h.trim()
-                    if(!ht) return
-               })
-               body.forEach((b)=>{
-                    let bod = b.trim()
-                    if(!bod) return
-               })
-
-               // Set data types based on the number of columns 
-                    // and the types of values within the columns
-               // Current types - 'items' & 'trend' will likely
-                    // not be enough
-               // pDataType : string = typingMagic(pData)
-
-               // Also maybe change data updating from data sent directly,
-                    // to the <textarea> value
-               // Also implement column removal code
+          const handleRemoveColumn = (index: number) => {
+               const updatedHeaders = headers.filter((_, i) => i !== index);
+               const updatedValues = bodyCol.map((row:any) =>
+                    row.filter((_:any, i:number) => i !== index)
+               );
+               setHeaders(updatedHeaders);
+               setBodyCol(updatedValues);
+               upDataset.current = ({
+                    header: updatedHeaders,
+                    values: updatedValues,
+               });
                
-          }else if(dataInst.type === 'json'){
-               let jsonData = (document.getElementById('create-dataset-data') as HTMLInputElement).value
-               console.log(jsonData)
-               // pData : any[] = processyMagic(rawData)
-               // pDataType : string = typingMagic(pData)
-               // addDataset(name, pDataType, pData)
-               // setNewProj(true)
-               // setActive(false)
-          }else if(dataInst.type === 'state'){
-               // console.log(dataInst)
-               dataInst.data.forEach((d:any) => {
-                    headers.push(d.header)
-                    // body.push(d.values)
-                    // d.values.forEach((v:any)=>{
-                    //      body.push(d.values[i])
-                    // })
-               })
-               let n:number = dataInst.data[0].header.length
-               for(let a = 0; a<n; a++){
-                    // dataInst.data[a].values
-                    let x:number = dataInst.data.length
-                    let bodArr = []
-                    for(let b = 0; b<x; b++){
-                         bodArr.push(dataInst.data[b].values[a])
-                    }
-                    body.push(bodArr)
-                    // dataInst.data.forEach((d:any, i:number) => {
-                    //      // headers.push(d.header)
-                    //      body.push(d.values)
-                    //      // d.values.forEach((v:any)=>{
-                    //      //      body.push(d.values[i])
-                    //      // })
-                    // })
-               }
-               // console.log(headers)
-               // console.log(body)
-               // return(<>Sorry</>)
-
-               // -- This works but needs refining
-                    // - refactor code
-                    // - table doesnt refresh on reload
-                    // - Also why tf are the table cells so large now????
+               // console.log('temp')
+               // console.log(updatedHeaders)
+               // console.log(updatedValues)
+               // console.log(upDataset.current)
           }
           const updateTempDataset = (upDataset : any) =>{
                const tempDS = upDataset
@@ -133,31 +222,31 @@ export const StartSheet=()=>{
           return(
                <div id="start-sheet-page" className="h-full w-full flex flex-col items-center p-2 pt-20">
                          <Nav />
-                         <div className='bg-slate-200 w-full  py-0.5 px-8 flex items-center justify-between'>
+                         <div className='bg-slate-200 w-full py-0.5 px-8 flex items-center justify-between'>
                               {/* Mimic style of the navbar */}
-                              <h2 className='h-10 text-2xl bg-yellow-400'>Spread Sheet Editor</h2>
+                              <h2 className='h-10 text-2xl bg-yellow-400 flex items-center'>{dataInst.name}</h2>
                               <div className='flex items-center justify-around gap-8'>
                                    <div className={`sheet-nav-btn ${undoLen <= 0? 'inactive':''}`}
                                         onClick={()=>{
                                              let returnArr = undoArr.pop()
-                                             if(returnArr){
-                                                  let returnCol = returnArr.col
-                                                  let returnRow = returnArr.row
-                                                  let returnHeader = returnArr.arr[0]
-                                                  let returnBody = returnArr.arr.slice(1)
-                                                  if(returnCol >= 0 && returnRow < 0)
-                                                       upDataset.splice(returnCol, 0, {
-                                                            header : returnHeader,
-                                                            values : returnBody
-                                                       })
-                                                  if(returnRow >= 0 && returnCol < 0){
-                                                       // upDataset.splice(returnRow?, 0, {
-                                                       //      header : returnHeader,
-                                                       //      values : returnBody
-                                                       // })
-                                                  }
-                                                  updateTempDataset(upDataset)
-                                             }
+                                             // if(returnArr){
+                                             //      let returnCol = returnArr.col
+                                             //      let returnRow = returnArr.row
+                                             //      let returnHeader = returnArr.arr[0]
+                                             //      let returnBody = returnArr.arr.slice(1)
+                                             //      if(returnCol >= 0 && returnRow < 0)
+                                             //           upDataset.splice(returnCol, 0, {
+                                             //                header : returnHeader,
+                                             //                values : returnBody
+                                             //           })
+                                             //      if(returnRow >= 0 && returnCol < 0){
+                                             //           // upDataset.splice(returnRow?, 0, {
+                                             //           //      header : returnHeader,
+                                             //           //      values : returnBody
+                                             //           // })
+                                             //      }
+                                             //      updateTempDataset(upDataset)
+                                             // }
                                         }}
                                    >
                                         <i className="fa-solid fa-arrow-rotate-left"></i>
@@ -167,14 +256,13 @@ export const StartSheet=()=>{
                                         <i className="fa-solid fa-arrow-rotate-right"></i>
                                         <button>Redo</button>
                                    </div>
-                                   <div className='sheet-nav-btn delete'>
-                                        <i className="fa-solid fa-trash"
-                                             onClick={()=>{
-                                                  // delDataset(unique)
-                                                  navigate('/')
-                                             }}
-                                        ></i>
-                                        
+                                   <div className='sheet-nav-btn delete'
+                                        onClick={()=>{
+                                             delDataset(unique)
+                                             navigate('/')
+                                        }}
+                                   >
+                                        <i className="fa-solid fa-trash"></i>
                                         <button>Delete</button>
                                    </div>
                                    
@@ -187,21 +275,12 @@ export const StartSheet=()=>{
                          
                          <div className='sheet-table-cont flex flex-col border border-black'>
                               <table className='w-full h-full'>
-                                   {/* <caption>{dataInst.name}</caption> */}
 
                                    {/* Header */}
                                    <thead>
                                         <tr>
                                              <th className='row-del-btn-head'><div></div></th>
-                                             {headers.map((h , i) =>{
-                                                  if(upDataset[0].header === 'remove-this-header')
-                                                       upDataset[0].header = h
-                                                  else
-                                                       upDataset.push({
-                                                            header : h,
-                                                            values : [],
-                                                            // vals : [] as string[]
-                                                       })
+                                             {headers.map((_ , i) =>{
                                                   return(
                                                        <th key={i} className={`head col-${i} bg-white`}
                                                             onMouseEnter={()=>setCurCol(i)}
@@ -218,26 +297,18 @@ export const StartSheet=()=>{
                                                                                 if(undoCell)
                                                                                      undoArr[undoArr.length-1].arr.push(undoCell.value)
                                                                            }
-                                                                           console.log('before')
-                                                                           console.log(upDataset[i])
-                                                                           upDataset.splice(i, 1)
-                                                                           console.log('after')
-                                                                           console.log(upDataset[i])
-
-                                                                           // console.log('after undo')
-                                                                           // console.log(upDataset[i])
-                                                                           // console.log(undoArr)
-                                                                           
+                                                                           handleRemoveColumn(i)
                                                                       }
                                                                       setUndoLen(undoArr.length)
-                                                                      updateTempDataset(upDataset)
+                                                                      // updateTempDataset(upDataset)
                                                                  }}
                                                             ></i>
                                                             <textarea 
                                                                  name="text"
                                                                  wrap="soft"
                                                                  className="h-8 w-48 border"
-                                                                 defaultValue={h}
+                                                                 // defaultValue={h}
+                                                                 // defaultValue={headers[i]}
                                                             ></textarea>
                                                        </th>
                                                   )
@@ -247,23 +318,9 @@ export const StartSheet=()=>{
 
                                    {/* Table Body */}
                                    <tbody>
-                                        {body.map((bod , i) =>{
+                                        {bodyCol.map((bod , i) =>{
                                              if(bod === '') return
-                                             let columns : any[] = []
-
-                                             if(dataInst.type === 'csv'){
-                                                  // regular experession to separate strings by commas,
-                                                  // while leaving strings within enclosing quotes intact
-                                                  const regex = /((?:^|,)(\"(?:[^\"]+|\"\")*\"|[^,]*))/g
-                                                  // executing match against regex
-                                                  // also removing all quotes and starting commas
-                                                  columns = bod.match(regex)?.map((item:any) => item.replace(/"/g, '').replace(/^,/, '').trim());
-                                             }
-                                             if(dataInst.type === 'state'){
-                                                  columns = bod
-                                             }
-                                             
-                                             
+                                             let columns : any[] = bod
                                              
                                              return(
                                                   <tr key={i} className={`row-${i}`}>
@@ -278,8 +335,10 @@ export const StartSheet=()=>{
                                                             <i className={`fa fa-minus-circle row-del-btn cursor-pointer 
                                                                  ${curRow === i?'active' : ''}`}></i>
                                                        </td>
-                                                       {columns.map((col , inCol) =>{
-                                                            upDataset[inCol].values.push(col)
+                                                       {columns.map((_ , inCol) =>{
+                                                            // upDataset[inCol].values.push(col)
+                                                            // console.log('column')
+                                                            // console.log(bodyCol[inCol])
                                                             return(
                                                                  <td key={inCol} className={`body-cell col-${inCol}`}
                                                                       onMouseEnter={()=>{
@@ -295,7 +354,7 @@ export const StartSheet=()=>{
                                                                            name="text"
                                                                            wrap="soft"
                                                                            className="h-12 w-48"
-                                                                           defaultValue={col}
+                                                                           // defaultValue={col}
                                                                       ></textarea>
                                                                  </td>
                                                             )
