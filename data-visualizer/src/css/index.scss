@@ -317,3 +317,35 @@ table .head{
           transition: 0.25s;
      }
 }
+
+// -Process Data Types --
+.table-types-float-cont *{
+     display: none;
+     *{
+          display: none;
+     }
+}
+.table-types-float-cont.active{
+     display: flex;
+     z-index: 5;
+     *{
+          display: flex;
+     }
+}
+.table-types-float-body{
+     top: 12.5%;
+     left: 12.5%;
+     input{outline: none;}
+     button{
+          border-radius: 10px;
+          border: 2px solid #14b8a6;
+          padding: 1px 10px;
+     }
+     button:hover{
+          background: #14b8a6;
+     }
+     button.inactive{
+          display: none;
+          padding: 0;
+     }
+}

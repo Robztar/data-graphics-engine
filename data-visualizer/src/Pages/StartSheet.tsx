@@ -15,6 +15,8 @@ export const StartSheet=()=>{
      // const [redoArr, setRedo] = useState<{ [key:string]: any }[]>([
      //      {row : -1, col: -1, arr: []}
      // ])
+     const [defaultType, setDefaultType] = useState<string[]>([])
+     const [activeProcess, setActiveProcess] = useState(false)
 
      const navigate = useNavigate()
 
@@ -65,17 +67,6 @@ export const StartSheet=()=>{
                          let bod = b.trim()
                          if(!bod) return
                     })
-     
-                    // Set data types based on the number of columns 
-                         // and the types of values within the columns
-                    // Current types - 'items' & 'trend' will likely
-                         // not be enough
-                    // pDataType : string = typingMagic(pData)
-     
-                    // Also maybe change data updating from data sent directly,
-                         // to the <textarea> value
-                    // Also implement column removal code
-                    
                }else if(dataInst.type === 'json'){
                     let jsonData = (document.getElementById('create-dataset-data') as HTMLInputElement).value
                     console.log(jsonData)
@@ -85,7 +76,8 @@ export const StartSheet=()=>{
                     // setNewProj(true)
                     // setActive(false)
                }else if(dataInst.type === 'state'){
-                    // console.log(dataInst)
+                    // Old code - keep for now
+                    
                     let headersConv : any[] = []
                     dataInst.data.forEach((d:any) => {
                          headersConv.push(d.header)
@@ -103,8 +95,6 @@ export const StartSheet=()=>{
                     }
                     setHeaders(headersConv)
                     setBody(bodyConv)
-     
-                    // - avoid all the state dataInst.type (maybe)
                }
           }
      },[dataInst])
@@ -187,13 +177,128 @@ export const StartSheet=()=>{
                }
                setUndo([...undoArr, undoList])
           }
-          const updateTempDataset = (upDataset : any) =>{
-               const tempDS = upDataset
-               console.log('temp')
-               console.log(tempDS)
-               setData(tempDS, unique)
-               setDataType('state', unique)
+          const handleHeaderChange = (newHead : any, index : number) =>{
+               let headerTemp:any = []
+               headers.forEach((h)=>{
+                    headerTemp.push(h)
+               })
+               headerTemp[index] = newHead
+               setHeaders(headerTemp)
           }
+          const handleFieldChange = (newVal : any, inRow : number, inCol : number) =>{
+               let fieldsTemp:any = []
+               fields.forEach((f, i)=>{
+                    fieldsTemp.push([])
+                    f.forEach((c:any)=>{
+                         fieldsTemp[i].push(c)
+                    })
+               })
+               fieldsTemp[inRow][inCol] = newVal
+               setFields(fieldsTemp)
+          }
+          
+          const testDataType = (inRow: number, inCol: number, colDataType : string[], value: any) =>{
+               let dType: string = ''
+
+               if(value.trim() !== ''){
+                    let numVal = parseFloat(value)
+                    if(!isNaN(numVal) && value === numVal.toString()){
+                         if(Number.isInteger(numVal)){
+                              numVal = parseInt(value)
+                              dType = 'integer'
+                         }else
+                              dType = 'decimal'
+                    }else{
+                         let dateVal = new Date(value)
+                         // @ts-expect-error
+                         if(!isNaN(dateVal))
+                              dType = 'date'
+                         else
+                              dType = typeof(value)
+                    }
+               }else{
+                    alert('Empty Field at: row- '+inRow+', column- '+inCol)
+               }
+               if(inRow === 0)
+                    colDataType[inCol] = dType
+               
+               if(inRow > 0){
+                    if(colDataType[inCol] !== dType){
+                         if((colDataType[inCol] === 'decimal' && dType === 'integer')
+                              || (colDataType[inCol] === 'integer' && dType === 'decimal')
+                         ){colDataType[inCol] = 'decimal'}
+                         else
+                              colDataType[inCol] === 'string'
+                    }
+               }
+               if(inRow === 4 && inCol === 11)
+                    console.log(colDataType)
+          }
+          const setNewType = (colDataType ?: string[], newType ?: string, modCol ?: number) =>{
+               let fieldsTemp: any[] = []
+               if(colDataType !== undefined){
+                    fields.forEach((f, i)=>{
+                         fieldsTemp.push([])
+                         f.forEach((val:any, iCol: number)=>{
+                              if(colDataType[iCol] === 'string')
+                                   fieldsTemp[i].push(val.toString())
+                              else if(colDataType[iCol] === 'integer')
+                                   fieldsTemp[i].push(parseInt(val))
+                              else if(colDataType[iCol] === 'decimal')
+                                   fieldsTemp[i].push(parseFloat(val))
+                              else if(colDataType[iCol] === 'date')
+                                   fieldsTemp[i].push(new Date(val))
+                              else
+                                   fieldsTemp[i].push(val)
+                         })
+                    })
+               }else if(newType !== undefined && modCol !== undefined)
+                    fields.forEach((f, i)=>{
+                         fieldsTemp.push([])
+                         f.forEach((val:any, iCol: number)=>{
+                              if(modCol === iCol){
+                                   if(newType === 'string')
+                                        fieldsTemp[i].push(val.toString())
+                                   else if(newType === 'integer')
+                                        fieldsTemp[i].push(parseInt(val))
+                                   else if(newType === 'decimal')
+                                        fieldsTemp[i].push(parseFloat(val))
+                                   else if(newType === 'date')
+                                        fieldsTemp[i].push(new Date(val))
+                              }else
+                                   fieldsTemp[i].push(val)
+                         })
+                    })
+               
+               upDataset.current = ({
+                    header : headers,
+                    values : fieldsTemp,
+               })
+               // setFields(fieldsTemp)
+               console.log('upDataset')
+               console.log(upDataset.current)
+          }
+
+          const processData = () =>{
+               const colDataType: any[] = []
+               fields.forEach((r, iRow)=>{
+                    r.forEach((val: any, iCol: number)=>{
+                         if(iRow === 0)
+                              colDataType.push('')
+                         testDataType(iRow, iCol, colDataType, val)
+                    })
+               })
+               setNewType(colDataType)
+               setDefaultType(colDataType)
+               setActiveProcess(true)
+          }
+          // const updateTempDataset = (upDataset : any) =>{
+          //      const tempDS = upDataset
+          //      console.log('temp')
+          //      console.log(tempDS)
+          //      setData(tempDS, unique)
+          //      setDataType('state', unique)
+          // }
           
           return(
                <div id="start-sheet-page" className="h-full w-full flex flex-col items-center p-2 pt-20">
@@ -274,38 +379,7 @@ export const StartSheet=()=>{
                                    
                                    <div className='sheet-nav-save bg-teal-400 rounded-xl cursor-pointer flex items-center gap-1 py-0.5 px-2'
                                         onClick={()=>{
-                                             const upHeaders :any = []
-                                             const upValues: any = []
-                                             headers.forEach((_, i)=>{
-                                                  const insertCol = document.getElementsByClassName('head col-'+i)
-                                                  if(insertCol){
-                                                       const insertVal = insertCol[0].querySelector('textarea') as HTMLTextAreaElement
-                                                       upHeaders.push(insertVal.value)
-                                                  }
-                                             })
-                                             fields.forEach((b:any, i:number)=>{
-                                                  const insertRow = document.getElementsByClassName('row-'+i)
-                                                  
-                                                  if(insertRow){
-                                                       const rowCells = insertRow[0].getElementsByClassName('body-cell')
-                                                       upValues.push([])
-                                                       for (let c = 0; c < rowCells.length; c++) {
-                                                            const insertCell = insertRow[0].querySelector('.col-'+c)
-                                                            const insertVal = insertCell?.querySelector('textarea') as HTMLTextAreaElement
-                                                            if(insertVal)
-                                                                 upValues[i].push(insertVal.value)
-                                                       }
-                                                  }
-                                             })
-                                             upDataset.current = ({
-                                                  header : upHeaders,
-                                                  values : upValues,
-                                             })
-                                             console.log('upDataset')
-                                             console.log(upDataset.current)
-                                             
-                                             // updateTempDataset(upDataset)
-                                             // navigate(`/proj?id=${unique}`)
+                                             processData()
                                         }}
                                    >
                                         <button>Save and Proceed</button>
@@ -335,10 +409,12 @@ export const StartSheet=()=>{
                                                                  name="text"
                                                                  wrap="soft"
                                                                  className="h-8 w-48 border"
-                                                                 // if I edit a field then update state the updated field
-                                                                      // goes back to original
-                                                                 // Make header input on change
-                                                                 // onChange={handleTextChange(h, i)}
+                                                                 onChange={()=>{
+                                                                      const headerCont = document.getElementsByClassName('head col-'+i)
+                                                                      const headVal = (headerCont[0].querySelector('textarea') as HTMLTextAreaElement)
+                                                                           ?.value
+                                                                      handleHeaderChange(headVal, i)
+                                                                 }}
                                                             ></textarea>
                                                        </th>
                                                   )
@@ -383,6 +459,13 @@ export const StartSheet=()=>{
                                                                            name="text"
                                                                            wrap="soft"
                                                                            className="h-12 w-48"
+                                                                           onChange={()=>{
+                                                                                const fieldRow = document.getElementsByClassName('row-'+i)[0]
+                                                                                const fieldCell = fieldRow.getElementsByClassName('body-cell col-'+inCol)
+                                                                                const cellVal = (fieldCell[0].querySelector('textarea') as HTMLTextAreaElement)
+                                                                                     ?.value
+                                                                                handleFieldChange(cellVal, i, inCol)
+                                                                           }}
                                                                       ></textarea>
                                                                  </td>
                                                             )
@@ -392,6 +475,114 @@ export const StartSheet=()=>{
                                         })}
                                    </tbody>
                               </table>
+                         </div>
+
+                         {/* Process Wizard */}
+                         <div className={`
+                              table-types-float-cont ${activeProcess? 'h-full w-full active':'h-0 w-0'} 
+                              absolute top-0 left-0`
+                         }>
+                              {/* Blur Overlay */}
+                              <div className="h-full w-full bg-slate-800 bg-opacity-60 backdrop-blur-sm"
+                                   onClick={()=>setActiveProcess(false)}
+                              ></div>
+                              {/* Wizard Body */}
+                              <div className={`
+                                        table-types-float-body ${activeProcess? 'h-3/4 w-3/4 p-2 active':'h-0 w-0'} 
+                                        absolute bg-white rounded-3xl flex flex-col items-center justify-start gap-4`
+                                   }
+                              >
+                                   {/* Wiz Head */}
+                                   <div className="w-full px-2 flex items-center justify-between border-b-red-200 border-b-2">
+                                        <h1 className={`${activeProcess? 'h-10 text-2xl':'h-0 w-0'}`}> Verify Data Types</h1>
+                                        <i className="fa fa-times-circle-o text-3xl cursor-pointer"
+                                             onClick={()=>{
+                                                  setActiveProcess(false)
+                                             }}
+                                        ></i>
+                                   </div>
+
+                                   {/* Wiz Body */}
+                                   <div className="w-full h-full px-6 flex flex-col items-center justify-start ">
+                                        <h2>Verify the data type for each column</h2>
+                                        <div className="w-full flex items-center justify-between gap-1 bg-red-200">
+                                             {headers.map((h , i) =>{
+                                                  return(
+                                                       <div key={i} className={`flex flex-col items-center justify-center gap-1 bg-red-400
+                                                            ${activeProcess? 'text-sm':'h-0 w-0 hidden'}`}
+                                                       >
+                                                            <div className="w-full px-2 flex items-center justify-center border border-black">
+                                                                 {h}
+                                                            </div>
+                                                            {defaultType[i] === 'string' ?
+                                                                 <select className="w-full" name="dataType" id="data-type" defaultValue="string" 
+                                                                      onChange={(e)=>{ 
+                                                                           const opVal = e.target.value
+                                                                           setNewType(undefined, opVal, i)
+                                                                 }}>
+                                                                      <option value="string">string</option>
+                                                                      <option value="integer" disabled={true}>integer</option>
+                                                                      <option value="decimal" disabled={true}>decimal</option>
+                                                                      <option value="date" disabled={true}>date</option>
+                                                                 </select>
+                                                            :''}
+                                                            {defaultType[i] === 'integer' ?
+                                                                 <select className="w-full" name="dataType" id="data-type" defaultValue="integer" 
+                                                                      onChange={(e)=>{ 
+                                                                           const opVal = e.target.value
+                                                                           setNewType(undefined, opVal, i)
+                                                                 }}>
+                                                                      <option value="integer">integer</option>
+                                                                      <option value="decimal">decimal</option>
+                                                                      <option value="string">string</option>
+                                                                      <option value="date" disabled={true}>date</option>
+                                                                 </select>
+                                                            :''}
+                                                            {defaultType[i] === 'decimal' ?
+                                                                 <select className="w-full" name="dataType" id="data-type" defaultValue="decimal"
+                                                                      onChange={(e)=>{ 
+                                                                           const opVal = e.target.value
+                                                                           setNewType(undefined, opVal, i)
+                                                                 }}>
+                                                                      <option value="decimal">decimal</option>
+                                                                      <option value="integer">integer</option>
+                                                                      <option value="string">string</option>
+                                                                      <option value="date" disabled={true}>date</option>
+                                                                 </select>
+                                                            :''}
+                                                            {defaultType[i] === 'date' ?
+                                                                 <select className="w-full" name="dataType" id="data-type" defaultValue="date"
+                                                                      onChange={(e)=>{ 
+                                                                           const opVal = e.target.value
+                                                                           setNewType(undefined, opVal, i)
+                                                                 }}>
+                                                                      <option value="date">date</option>
+                                                                      <option value="string">string</option>
+                                                                      <option value="integer" disabled={true}>integer</option>
+                                                                      <option value="decimal" disabled={true}>decimal</option>
+                                                                 </select>
+                                                            :''}
+                                                       </div>
+                                                  )
+                                             })}
+                                        </div>
+                                        {/* The chart options should show up automatically, 
+                                             based on the data types and the number of columns
+                                             Current options - 'items' & 'trend' won't be enough */}
+                                        <h3 className='pt-12'>Choose Chart Type</h3>
+                                        <div className={`flex justify-around w-1/2
+                                                            ${activeProcess? '':'h-0 w-0 hidden'}`}>
+                                             <div className='flex items-center justify-center w-20 h-20 bg-blue-400'
+                                                  onClick={()=>{
+                                                       // set data type for store
+                                                       // updateTempDataset(upDataset)
+                                                       // navigate(`/proj?id=${unique}`)
+                                                  }}
+                                             >Trend</div>
+                                             <div className='flex items-center justify-center w-20 h-20 bg-orange-400'>Discrete</div>
+                                        </div>
+                                   </div>
+                              </div>
                          </div>
                     </div>
           )
