@@ -363,4 +363,14 @@ table .head textarea {
 .table-types-float-body button.inactive {
   display: none;
   padding: 0;
+}
+
+.chart-options {
+  background-position: center;
+  background-size: auto 9rem;
+  height: 7rem;
+  width: 7rem;
+  border-radius: 20px;
+  box-shadow: 2px 2px 16px rgba(0, 0, 32, 0.3137254902);
+  transition: 0.5s;
 }/*# sourceMappingURL=index.css.map */

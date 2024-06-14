@@ -4,7 +4,10 @@ import { useNavigate } from "react-router-dom"
 import { Nav } from "../components/Nav"
 import { dataStore } from "../hooks/dataStore"
 
-
+import boxwhiskerIcon from '../img/chart-icon/box-whisker-icon.png'
+import barIcon from '../img/chart-icon/bar-chart-icon.png'
+import columnIcon from '../img/chart-icon/column-chart-icon.png'
+import lineIcon from '../img/chart-icon/line-graph-icon.png'
 
 export const StartSheet=()=>{
      const {dataset, setData, setDataType, delDataset} = dataStore()
@@ -17,6 +20,7 @@ export const StartSheet=()=>{
      // ])
      const [defaultType, setDefaultType] = useState<string[]>([])
      const [activeProcess, setActiveProcess] = useState(false)
+     const [chartOpts, setChartOpts] = useState<string[]>([])
 
      const navigate = useNavigate()
 
@@ -146,6 +150,7 @@ export const StartSheet=()=>{
 
      if(dataInst){
           let unique = dataInst.key
+          
           const handleRemoveColumn = (index: number) => {
                const updatedHeaders = headers.filter((_, i) => i !== index)
                const updatedValues = fields.map((row:any) =>
@@ -234,6 +239,61 @@ export const StartSheet=()=>{
                if(inRow === 4 && inCol === 11)
                     console.log(colDataType)
           }
+          const setChartTypes = (upDataset : any) =>{
+               const chartDS = upDataset
+               console.log('chart dataset')
+               console.log(chartDS)
+               let chartCols = chartDS.header.length
+               let chartVals = chartDS.values
+               let upChartOpts : string[] = []
+
+               if(chartCols === 1)
+                    if(typeof(chartVals[0][0]) === 'number'){
+                         upChartOpts.push('boxwhisker')  // Box & Whisker Chart
+                         upChartOpts.push('bar')  // Bar Chart
+                         upChartOpts.push('column')  // Column Chart
+                         upChartOpts.push('line')  // Line Graph
+                         upChartOpts.push('radar')  // Radar Chart
+                         upChartOpts.push('scatter')  // Scatter Plot
+                         upChartOpts.push('venn')  // Venn Diagram
+                    }
+               if(chartCols > 1){
+                    let valsNum = true
+                    // Verify the date check works
+                         // then use to add line graph (and some others)
+                    let valsDate = true
+                    chartVals[0].forEach((v: any, i: number)=>{
+                         if(i > 0)
+                              if(typeof(v) !== 'number')
+                                   valsNum = false
+                              if(!(v instanceof Date && !isNaN(v.getTime())))
+                                   valsDate = false
+                    })
+
+                    if(valsNum){
+                         upChartOpts.push('bar')  // Bar Chart
+                         upChartOpts.push('column')  // Column Chart
+                         upChartOpts.push('line')  // Line Graph
+                         upChartOpts.push('radar')  // Radar Chart
+                         upChartOpts.push('scatter')  // Scatter Plot
+                    }
+                    if(chartCols < 5){   // (maybe temporary limitation)
+                         upChartOpts.push('venn')  // Venn Diagram
+                         if(valsNum){
+                              if(chartCols === 2){
+                                   upChartOpts.push('pie')  // Pie Chart
+                                   upChartOpts.push('histogram')  // Histogram
+                                   upChartOpts.push('pictograph')  // Pictograph
+                                   upChartOpts.push('pyramid')  // Pyramid Chart
+                              }
+                         }
+                    }
+               }
+
+               console.log('upChartOpts')
+               console.log(upChartOpts)
+               setChartOpts(upChartOpts)
+          }
           const setNewType = (colDataType ?: string[], newType ?: string, modCol ?: number) =>{
                let fieldsTemp: any[] = []
                if(colDataType !== undefined){
@@ -253,7 +313,7 @@ export const StartSheet=()=>{
                          })
                     })
                }else if(newType !== undefined && modCol !== undefined)
-                    fields.forEach((f, i)=>{
+                    upDataset.current.values.forEach((f:any, i: number)=>{
                          fieldsTemp.push([])
                          f.forEach((val:any, iCol: number)=>{
                               if(modCol === iCol){
@@ -274,9 +334,10 @@ export const StartSheet=()=>{
                     header : headers,
                     values : fieldsTemp,
                })
-               // setFields(fieldsTemp)
                console.log('upDataset')
                console.log(upDataset.current)
+
+               setChartTypes(upDataset.current)
           }
 
           const processData = () =>{
@@ -288,17 +349,22 @@ export const StartSheet=()=>{
                          testDataType(iRow, iCol, colDataType, val)
                     })
                })
+               
+               upDataset.current = ({
+                    header : headers,
+                    values : fields,
+               })
                setNewType(colDataType)
                setDefaultType(colDataType)
                setActiveProcess(true)
           }
-          // const updateTempDataset = (upDataset : any) =>{
-          //      const tempDS = upDataset
-          //      console.log('temp')
-          //      console.log(tempDS)
-          //      setData(tempDS, unique)
-          //      setDataType('state', unique)
-          // }
+          const updateDataset = (type : string) =>{
+               console.log('set state')
+               console.log(type)
+               console.log(upDataset.current)
+               // setData(upDataset.current, unique)
+               // setDataType(type, unique)
+          }
           
           return(
                <div id="start-sheet-page" className="h-full w-full flex flex-col items-center p-2 pt-20">
@@ -566,11 +632,8 @@ export const StartSheet=()=>{
                                                   )
                                              })}
                                         </div>
-                                        {/* The chart options should show up automatically, 
-                                             based on the data types and the number of columns
-                                             Current options - 'items' & 'trend' won't be enough */}
                                         <h3 className='pt-12'>Choose Chart Type</h3>
-                                        <div className={`flex justify-around w-1/2
+                                        <div className={`flex justify-around flex-wrap w-3/4
                                                             ${activeProcess? '':'h-0 w-0 hidden'}`}>
                                              <div className='flex items-center justify-center w-20 h-20 bg-blue-400'
                                                   onClick={()=>{
@@ -580,6 +643,46 @@ export const StartSheet=()=>{
                                                   }}
                                              >Trend</div>
                                              <div className='flex items-center justify-center w-20 h-20 bg-orange-400'>Discrete</div>
+                                             {chartOpts.map((opt) =>{
+                                                  let optLabel = ''
+                                                  let optImg = ''
+                                                  if(opt === 'boxwhisker'){
+                                                       optLabel= 'Box & Whisker Chart'
+                                                       optImg = boxwhiskerIcon
+                                                  }else if(opt === 'bar'){
+                                                       optLabel= 'Bar Chart'
+                                                       optImg = barIcon
+                                                  }else if(opt === 'column'){
+                                                       optLabel= 'Column Chart'
+                                                       optImg = columnIcon
+                                                  }else if(opt === 'line'){
+                                                       optLabel= 'Line Graph'
+                                                       optImg = lineIcon
+                                                  }else if(opt === 'radar'){
+                                                       optLabel= 'Radar Chart'
+                                                  }else if(opt === 'scatter'){
+                                                       optLabel= 'Scatter Plot'
+                                                  }else if(opt === 'venn'){
+                                                       optLabel= 'Venn Diagram'
+                                                  }else if(opt === 'pie'){
+                                                       optLabel= 'Pie Chart'
+                                                  }else if(opt === 'histogram'){
+                                                       optLabel= 'Histogram'
+                                                  }else if(opt === 'pictograph'){
+                                                       optLabel= 'Pictograph'
+                                                  }else if(opt === 'pyramid')
+                                                       optLabel= 'Pyramid Chart'
+                                                  return(
+                                                       <div className='chart-options flex flex-col items-center justify-end'
+                                                            style={{ backgroundImage: `url(${optImg})` }}
+                                                            onClick={()=>{
+                                                                 // set data type for store
+                                                                 updateDataset(opt)
+                                                                 // navigate(`/proj?id=${unique}`)
+                                                            }}
+                                                       >{optLabel}</div>
+                                                  )
+                                             })}
                                         </div>
                                    </div>
                               </div>

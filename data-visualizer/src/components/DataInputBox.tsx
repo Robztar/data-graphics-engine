@@ -251,8 +251,6 @@ export const DataInputBox = (props:EntryProps) =>{
                          </div>
                          <button 
                               onClick={()=>{
-                                   // Do checks on the data, segmentation, etc.
-                                   // If csv type, send to new spreadsheet page for further processing
                                    if(fileType === 'text/plain')
                                         props.setDataEntry({entry: 'raw', entryData: fileData})
                                    else if(fileType === 'text/csv')
