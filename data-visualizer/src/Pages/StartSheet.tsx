@@ -8,6 +8,13 @@ import boxwhiskerIcon from '../img/chart-icon/box-whisker-icon.png'
 import barIcon from '../img/chart-icon/bar-chart-icon.png'
 import columnIcon from '../img/chart-icon/column-chart-icon.png'
 import lineIcon from '../img/chart-icon/line-graph-icon.png'
+import radarIcon from '../img/chart-icon/radar-chart-icon.png'
+import scatterIcon from '../img/chart-icon/scatter-plot-icon.png'
+import vennIcon from '../img/chart-icon/venn-diagram-icon.png'
+import pieIcon from '../img/chart-icon/pie-chart-icon.png'
+import histoIcon from '../img/chart-icon/histogram-icon.png'
+import pictoIcon from '../img/chart-icon/pictograph-icon.png'
+import pyramidIcon from '../img/chart-icon/pyramid-chart-icon.png'
 
 export const StartSheet=()=>{
      const {dataset, setData, setDataType, delDataset} = dataStore()
@@ -252,25 +259,24 @@ export const StartSheet=()=>{
                          upChartOpts.push('boxwhisker')  // Box & Whisker Chart
                          upChartOpts.push('bar')  // Bar Chart
                          upChartOpts.push('column')  // Column Chart
-                         upChartOpts.push('line')  // Line Graph
+                         upChartOpts.push('line')  // Line Graph, Spline Graph, Area Chart
                          upChartOpts.push('radar')  // Radar Chart
-                         upChartOpts.push('scatter')  // Scatter Plot
+                         upChartOpts.push('scatter')  // Scatter Plot, Bubble Chart
                          upChartOpts.push('venn')  // Venn Diagram
                     }
                if(chartCols > 1){
                     let valsNum = true
-                    // Verify the date check works
-                         // then use to add line graph (and some others)
                     let valsDate = true
                     chartVals[0].forEach((v: any, i: number)=>{
-                         if(i > 0)
+                         if(i > 0){
                               if(typeof(v) !== 'number')
                                    valsNum = false
                               if(!(v instanceof Date && !isNaN(v.getTime())))
                                    valsDate = false
+                         }
                     })
 
-                    if(valsNum){
+                    if(valsNum || valsDate){
                          upChartOpts.push('bar')  // Bar Chart
                          upChartOpts.push('column')  // Column Chart
                          upChartOpts.push('line')  // Line Graph
@@ -279,11 +285,11 @@ export const StartSheet=()=>{
                     }
                     if(chartCols < 5){   // (maybe temporary limitation)
                          upChartOpts.push('venn')  // Venn Diagram
-                         if(valsNum){
+                         if(valsNum || valsDate){
                               if(chartCols === 2){
                                    upChartOpts.push('pie')  // Pie Chart
                                    upChartOpts.push('histogram')  // Histogram
-                                   upChartOpts.push('pictograph')  // Pictograph
+                                   upChartOpts.push('pictograph')  // Pictograph, Dot Plot
                                    upChartOpts.push('pyramid')  // Pyramid Chart
                               }
                          }
@@ -459,8 +465,8 @@ export const StartSheet=()=>{
 
                                    {/* Header */}
                                    <thead>
-                                        <tr>
-                                             <th className='row-del-btn-head'><div></div></th>
+                                        <tr className='flex items-center justify-start'>
+                                             <th className='row-del-btn-head w-6 h-12'><div></div></th>
                                              {headers.map((_ , i) =>{
                                                   return(
                                                        <th key={i} className={`head col-${i} bg-white`}
@@ -489,13 +495,13 @@ export const StartSheet=()=>{
                                    </thead>
 
                                    {/* Table Body */}
-                                   <tbody>
+                                   <tbody className='flex flex-col items-start'>
                                         {fields.map((bod , i) =>{
                                              if(bod === '') return
                                              let columns : any[] = bod
                                              
                                              return(
-                                                  <tr key={i} className={`row-${i}`}>
+                                                  <tr key={i} className={`row-${i} flex justify-start`}>
                                                        <td className='row-del-cont'
                                                             onMouseEnter={()=>{
                                                                  setCurRow(i)
@@ -505,7 +511,7 @@ export const StartSheet=()=>{
                                                             }}
                                                        >
                                                             <i className={`fa fa-minus-circle row-del-btn cursor-pointer 
-                                                                 ${curRow === i?'active' : ''}`}
+                                                                 ${curRow === i?'active' : ''} w-6 h-12`}
                                                                  onClick={()=>{ handleRemoveRow(i) }}
                                                             ></i>
                                                        </td>
@@ -571,7 +577,7 @@ export const StartSheet=()=>{
                                    {/* Wiz Body */}
                                    <div className="w-full h-full px-6 flex flex-col items-center justify-start ">
                                         <h2>Verify the data type for each column</h2>
-                                        <div className="w-full flex items-center justify-between gap-1 bg-red-200">
+                                        <div className="w-fit flex items-center justify-between gap-1 bg-red-200">
                                              {headers.map((h , i) =>{
                                                   return(
                                                        <div key={i} className={`flex flex-col items-center justify-center gap-1 bg-red-400
@@ -633,21 +639,21 @@ export const StartSheet=()=>{
                                              })}
                                         </div>
                                         <h3 className='pt-12'>Choose Chart Type</h3>
-                                        <div className={`flex justify-around flex-wrap w-3/4
+                                        <div className={`flex justify-around flex-wrap w-3/4 gap-y-2
                                                             ${activeProcess? '':'h-0 w-0 hidden'}`}>
-                                             <div className='flex items-center justify-center w-20 h-20 bg-blue-400'
+                                             {/* <div className='flex items-center justify-center w-24 h-24 bg-blue-400'
                                                   onClick={()=>{
                                                        // set data type for store
                                                        // updateTempDataset(upDataset)
                                                        // navigate(`/proj?id=${unique}`)
                                                   }}
                                              >Trend</div>
-                                             <div className='flex items-center justify-center w-20 h-20 bg-orange-400'>Discrete</div>
+                                             <div className='flex items-center justify-center w-24 h-24 bg-orange-400'>Discrete</div> */}
                                              {chartOpts.map((opt) =>{
                                                   let optLabel = ''
                                                   let optImg = ''
                                                   if(opt === 'boxwhisker'){
-                                                       optLabel= 'Box & Whisker Chart'
+                                                       optLabel= 'Box & Whisker'
                                                        optImg = boxwhiskerIcon
                                                   }else if(opt === 'bar'){
                                                        optLabel= 'Bar Chart'
@@ -660,19 +666,26 @@ export const StartSheet=()=>{
                                                        optImg = lineIcon
                                                   }else if(opt === 'radar'){
                                                        optLabel= 'Radar Chart'
+                                                       optImg = radarIcon
                                                   }else if(opt === 'scatter'){
                                                        optLabel= 'Scatter Plot'
+                                                       optImg = scatterIcon
                                                   }else if(opt === 'venn'){
                                                        optLabel= 'Venn Diagram'
+                                                       optImg = vennIcon
                                                   }else if(opt === 'pie'){
                                                        optLabel= 'Pie Chart'
+                                                       optImg = pieIcon
                                                   }else if(opt === 'histogram'){
                                                        optLabel= 'Histogram'
+                                                       optImg = histoIcon
                                                   }else if(opt === 'pictograph'){
                                                        optLabel= 'Pictograph'
-                                                  }else if(opt === 'pyramid')
+                                                       optImg = pictoIcon
+                                                  }else if(opt === 'pyramid'){
                                                        optLabel= 'Pyramid Chart'
-                                                  return(
+                                                       optImg = pyramidIcon
+                                                  }return(
                                                        <div className='chart-options flex flex-col items-center justify-end'
                                                             style={{ backgroundImage: `url(${optImg})` }}
                                                             onClick={()=>{
@@ -680,7 +693,9 @@ export const StartSheet=()=>{
                                                                  updateDataset(opt)
                                                                  // navigate(`/proj?id=${unique}`)
                                                             }}
-                                                       >{optLabel}</div>
+                                                       >
+                                                            <p className='text-center p-0 m-0'>{optLabel}</p>
+                                                       </div>
                                                   )
                                              })}
                                         </div>

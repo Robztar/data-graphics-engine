@@ -283,8 +283,6 @@ table .head textarea {
   position: sticky;
   left: 0rem;
   z-index: 2;
-  width: 1.5rem;
-  height: 100%;
   display: grid;
   place-items: center;
   background: white;
@@ -367,10 +365,15 @@ table .head textarea {
 
 .chart-options {
   background-position: center;
-  background-size: auto 9rem;
+  background-size: 7rem auto;
+  background-repeat: no-repeat;
   height: 7rem;
   width: 7rem;
   border-radius: 20px;
   box-shadow: 2px 2px 16px rgba(0, 0, 32, 0.3137254902);
+  overflow: hidden;
   transition: 0.5s;
+}
+.chart-options p {
+  background: linear-gradient(to top, #ffffff 30%, rgba(255, 255, 255, 0));
 }/*# sourceMappingURL=index.css.map */
