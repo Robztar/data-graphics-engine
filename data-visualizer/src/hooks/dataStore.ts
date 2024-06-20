@@ -14,6 +14,18 @@ interface DataStates {
      delDataset: (id: string) => void
 }
 
+interface ChartStates {
+     chartset: any
+     // activeDataset: string
+     addChartset: (n: string, t: string, d: {[key: string]: any}) => void
+     // setActiveDataset: (id: string) => void
+     // setData: (d: any[] | {[key: string]: any}, id: string) => void
+     // setDataType: (t: string, id: string) => void
+     // setModifyDate: (d: Date, id: string) => void
+     // setThumbnail: (t: string, id: string) => void
+     delChartset: (id: string) => void
+}
+
 const getOutfitData = (key:string) => localStorage.getItem(key);
 
 export const dataStore = create<DataStates>()(
@@ -83,8 +95,40 @@ export const dataStore = create<DataStates>()(
                },
           }
           ),{ 
-               name: 'dataset', 
+               name: 'dataset',
                storage: createJSONStorage(() => localStorage),
           }
      )
-);
+)
+
+export const chartStore = create<ChartStates>()(
+     persist(
+          (set) => ({
+               chartset: getOutfitData('chartset') || [],
+               addChartset: (name: string, type: string, inData: {[key: string]: any}) => {
+                    set((state:any) => ({
+                         chartset: [...state.chartset,
+                              { 
+                                   key: nanoid(),      // data field ID
+                                   name: name,         // name of data
+                                   type: type,         // type of data
+                                   data: inData,       // the data
+                                   dateCreated: new Date(),         // date created
+                                   lastModified: new Date(),         // date last modified
+                                   thumbnail: '',         // screenshot of the up to date project
+                              },
+                         ]
+                    }))
+               },
+               delChartset: (id: string) => {
+                    set((state) => ({
+                         chartset: state.chartset.filter((set:any) => set.key !== id)
+                    }));
+               },
+          }
+          ),{ 
+               name: 'chartset',
+               storage: createJSONStorage(() => localStorage),
+          }
+     )
+)

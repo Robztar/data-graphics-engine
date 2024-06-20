@@ -161,19 +161,6 @@ export const Query = () =>{
                                              addDataset(name, dataEntry.entry, [dataInput])
                                              setNewProj(true)
                                              setActive(false)
-                                        // }else if(dataEntry.entry === 'csv'){
-                                        //      let csvData = (document.getElementById('create-dataset-data') as HTMLInputElement).value
-                                             
-                                        //      // pData : any[] = processyMagic(rawData)
-                                        //      // pDataType : string = typingMagic(pData)
-                                             
-                                        // }else if(dataEntry.entry === 'json'){
-                                        //      let jsonData = (document.getElementById('create-dataset-data') as HTMLInputElement).value
-                                        //      // pData : any[] = processyMagic(rawData)
-                                        //      // pDataType : string = typingMagic(pData)
-                                        //      // addDataset(name, pDataType, pData)
-                                        //      // setNewProj(true)
-                                        //      // setActive(false)
                                         }else if(dataEntry.entry === 'defLine'){
                                              addDataset(name,'trend', dataEntry.entryData as any[])
                                              setNewProj(true)
@@ -183,8 +170,6 @@ export const Query = () =>{
                                              setNewProj(true)
                                              setActive(false)
                                         }
-                                        // setNewProj(true)
-                                        // setActive(false)
                                    }}
                               >{dataEntry.entry === 'file'? '':'Enter'}</button>
                          </div>

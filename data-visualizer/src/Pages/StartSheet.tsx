@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from "react-router-dom"
 
 import { Nav } from "../components/Nav"
-import { dataStore } from "../hooks/dataStore"
+import { dataStore, chartStore } from "../hooks/dataStore"
 
 import boxwhiskerIcon from '../img/chart-icon/box-whisker-icon.png'
 import barIcon from '../img/chart-icon/bar-chart-icon.png'
@@ -17,7 +17,8 @@ import pictoIcon from '../img/chart-icon/pictograph-icon.png'
 import pyramidIcon from '../img/chart-icon/pyramid-chart-icon.png'
 
 export const StartSheet=()=>{
-     const {dataset, setData, setDataType, delDataset} = dataStore()
+     const {dataset, setData, delDataset} = dataStore()
+     const {chartset, addChartset} = chartStore()
      const [curRow, setCurRow] = useState(-1)
      const [curCol, setCurCol] = useState(-1)
      const [undoArr, setUndo] 
@@ -30,6 +31,18 @@ export const StartSheet=()=>{
      const [chartOpts, setChartOpts] = useState<string[]>([])
 
      const navigate = useNavigate()
+     
+     const [goToNewProj, setNewProj] = useState(false)
+     if(goToNewProj){
+          if(chartset !== null){
+               const lastData = chartset.length-1
+               const dataKey = chartset[lastData].key
+               console.log('Zustand Last Data is: ' + dataKey) 
+               
+               navigate(`/proj?id=${dataKey}`)
+          }
+          setNewProj(false)
+     }
 
      // Query String
      const [queryId, setQueryId] = useState('')
@@ -266,17 +279,13 @@ export const StartSheet=()=>{
                     }
                if(chartCols > 1){
                     let valsNum = true
-                    let valsDate = true
                     chartVals[0].forEach((v: any, i: number)=>{
-                         if(i > 0){
+                         if(i > 0)
                               if(typeof(v) !== 'number')
                                    valsNum = false
-                              if(!(v instanceof Date && !isNaN(v.getTime())))
-                                   valsDate = false
-                         }
                     })
 
-                    if(valsNum || valsDate){
+                    if(valsNum){
                          upChartOpts.push('bar')  // Bar Chart
                          upChartOpts.push('column')  // Column Chart
                          upChartOpts.push('line')  // Line Graph
@@ -285,7 +294,7 @@ export const StartSheet=()=>{
                     }
                     if(chartCols < 5){   // (maybe temporary limitation)
                          upChartOpts.push('venn')  // Venn Diagram
-                         if(valsNum || valsDate){
+                         if(valsNum){
                               if(chartCols === 2){
                                    upChartOpts.push('pie')  // Pie Chart
                                    upChartOpts.push('histogram')  // Histogram
@@ -364,12 +373,12 @@ export const StartSheet=()=>{
                setDefaultType(colDataType)
                setActiveProcess(true)
           }
-          const updateDataset = (type : string) =>{
+          const transferDataset = (name:string, type : string) =>{
                console.log('set state')
                console.log(type)
                console.log(upDataset.current)
-               // setData(upDataset.current, unique)
-               // setDataType(type, unique)
+               addChartset(name, type, upDataset.current)
+               setNewProj(true)
           }
           
           return(
@@ -576,6 +585,13 @@ export const StartSheet=()=>{
 
                                    {/* Wiz Body */}
                                    <div className="w-full h-full px-6 flex flex-col items-center justify-start ">
+                                        <label className="pl-8">Chart Name:</label>
+                                        <input 
+                                             id='create-chartset-name'
+                                             className="w-1/2 px-1 rounded-md border-2 border-teal-500"
+                                             type='text'
+                                             defaultValue={dataInst.name}
+                                        />
                                         <h2>Verify the data type for each column</h2>
                                         <div className="w-fit flex items-center justify-between gap-1 bg-red-200">
                                              {headers.map((h , i) =>{
@@ -641,14 +657,6 @@ export const StartSheet=()=>{
                                         <h3 className='pt-12'>Choose Chart Type</h3>
                                         <div className={`flex justify-around flex-wrap w-3/4 gap-y-2
                                                             ${activeProcess? '':'h-0 w-0 hidden'}`}>
-                                             {/* <div className='flex items-center justify-center w-24 h-24 bg-blue-400'
-                                                  onClick={()=>{
-                                                       // set data type for store
-                                                       // updateTempDataset(upDataset)
-                                                       // navigate(`/proj?id=${unique}`)
-                                                  }}
-                                             >Trend</div>
-                                             <div className='flex items-center justify-center w-24 h-24 bg-orange-400'>Discrete</div> */}
                                              {chartOpts.map((opt) =>{
                                                   let optLabel = ''
                                                   let optImg = ''
@@ -686,12 +694,14 @@ export const StartSheet=()=>{
                                                        optLabel= 'Pyramid Chart'
                                                        optImg = pyramidIcon
                                                   }return(
-                                                       <div className='chart-options flex flex-col items-center justify-end'
+                                                       <div className='chart-options flex flex-col items-center justify-end cursor-pointer'
                                                             style={{ backgroundImage: `url(${optImg})` }}
                                                             onClick={()=>{
-                                                                 // set data type for store
-                                                                 updateDataset(opt)
-                                                                 // navigate(`/proj?id=${unique}`)
+                                                                 let name : string
+                                                                 name = (document.getElementById('create-chartset-name') as HTMLInputElement).value
+                                                                 if(name.length === 0)
+                                                                      name = dataInst.name
+                                                                 transferDataset(name, opt)
                                                             }}
                                                        >
                                                             <p className='text-center p-0 m-0'>{optLabel}</p>
