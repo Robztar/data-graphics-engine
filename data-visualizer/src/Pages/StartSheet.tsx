@@ -99,26 +99,6 @@ export const StartSheet=()=>{
                     // addDataset(name, pDataType, pData)
                     // setNewProj(true)
                     // setActive(false)
-               }else if(dataInst.type === 'state'){
-                    // Old code - keep for now
-                    
-                    let headersConv : any[] = []
-                    dataInst.data.forEach((d:any) => {
-                         headersConv.push(d.header)
-                    })
-
-                    let n:number = dataInst.data[0].header.length
-                    let bodyConv : any[] = []
-                    for(let a = 0; a<n; a++){
-                         let x:number = dataInst.data.length
-                         let bodArr = []
-                         for(let b = 0; b<x; b++){
-                              bodArr.push(dataInst.data[b].values[a])
-                         }
-                         bodyConv.push(bodArr)
-                    }
-                    setHeaders(headersConv)
-                    setBody(bodyConv)
                }
           }
      },[dataInst])
@@ -384,8 +364,8 @@ export const StartSheet=()=>{
           return(
                <div id="start-sheet-page" className="h-full w-full flex flex-col items-center p-2 pt-20">
                          <Nav />
+                         {/* Local Nav */}
                          <div className='bg-slate-200 w-full py-0.5 px-8 flex items-center justify-between'>
-                              {/* Local Nav */}
                               <h2 className='h-10 text-2xl bg-yellow-400 flex items-center'>{dataInst.name}</h2>
                               <div className='flex items-center justify-around gap-8'>
                                    <div className={`sheet-nav-btn ${undoArr.length <= 0? 'inactive':''}`}

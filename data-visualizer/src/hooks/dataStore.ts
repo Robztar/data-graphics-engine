@@ -16,12 +16,11 @@ interface DataStates {
 
 interface ChartStates {
      chartset: any
-     // activeDataset: string
      addChartset: (n: string, t: string, d: {[key: string]: any}) => void
-     // setActiveDataset: (id: string) => void
-     // setData: (d: any[] | {[key: string]: any}, id: string) => void
-     // setDataType: (t: string, id: string) => void
-     // setModifyDate: (d: Date, id: string) => void
+     setChartData: (d: any[] | {[key: string]: any}, id: string) => void
+     setChartName: (t: string, id: string) => void
+     setChartType: (t: string, id: string) => void
+     setChartDate: (d: Date, id: string) => void
      // setThumbnail: (t: string, id: string) => void
      delChartset: (id: string) => void
 }
@@ -118,6 +117,42 @@ export const chartStore = create<ChartStates>()(
                                    thumbnail: '',         // screenshot of the up to date project
                               },
                          ]
+                    }))
+               },
+               setChartData: (modData, id) =>{
+                    set((state) =>({
+                         chartset: state.chartset.map((set:any) =>
+                              set.key === id
+                                   ? ({...set, data: modData})
+                                   : set
+                         ),
+                    }))
+               },
+               setChartName: (newName, id) =>{
+                    set((state) =>({
+                         chartset: state.chartset.map((set:any) =>
+                              set.key === id
+                                   ? ({...set, name: newName})
+                                   : set
+                         ),
+                    }))
+               },
+               setChartType: (modDataType, id) =>{
+                    set((state) =>({
+                         chartset: state.chartset.map((set:any) =>
+                              set.key === id
+                                   ? ({...set, type: modDataType})
+                                   : set
+                         ),
+                    }))
+               },
+               setChartDate: (newDate, id) =>{
+                    set((state) =>({
+                         chartset: state.chartset.map((set:any) =>
+                              set.key === id
+                                   ? ({...set, lastModified: newDate})
+                                   : set
+                         ),
                     }))
                },
                delChartset: (id: string) => {

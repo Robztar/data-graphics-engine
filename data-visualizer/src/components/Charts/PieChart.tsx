@@ -1,5 +1,5 @@
 import { Chart as ChartJS, defaults, registerables } from "chart.js"
-import { Bar } from "react-chartjs-2"
+import { Doughnut, Pie } from "react-chartjs-2"
 
 ChartJS.register(...registerables)
 defaults.maintainAspectRatio = false
@@ -9,11 +9,11 @@ import { chartStore } from "../../hooks/dataStore"
 import { setValOrder } from '../../functions/setValOrder'
 // import { delDataRecord } from '../../functions/delDataRecord'
 
-type BarProps = {
+type PieProps = {
      unique: string
 }
 
-export const BarChart = (props:BarProps) => {
+export const PieChart = (props:PieProps) => {
      // const {chartset, setData, setModifyDate} = chartStore()
      const {chartset} = chartStore()
 
@@ -29,6 +29,10 @@ export const BarChart = (props:BarProps) => {
 
           let cLabels: any[] = []
           dValues.forEach((vals, row)=>{
+               // vals.forEach((d:any,i:number)=>{
+               //      if(i === 0)
+               //           cLabels.push(d)
+               // })
                vals.forEach((d:any,i:number)=>{
                     if(i === 0 && vals.length > 1)
                          cLabels.push(d)
@@ -49,9 +53,19 @@ export const BarChart = (props:BarProps) => {
                'rgba(153, 205, 50, 0.3)']
           let cDatasets : {label: any, data: any[], 
           borderColor: string, backgroundColor: string, fill: any}[] = []
-          
+          // let cDatasets : {label: any, data: any[]}[] = []
           dValues.forEach((vals, x)=>{
                vals.forEach((d:any,i:number)=>{
+                    // if(i > 0){
+                    //      if(x === 0)
+                    //           cDatasets.push({
+                    //                label: dHeaders[i],
+                    //                data: [d]
+                    //           })
+                    //      else
+                    //           cDatasets[i-1].data.push(d)
+
+                    // }
                     if(i > 0 || vals.length === 1){
                          if(x === 0){
                               // Checks for index to match with color
@@ -86,20 +100,20 @@ export const BarChart = (props:BarProps) => {
 
           return (
                <div className='chart-cont flex flex-col justify-end'>
-                    <Bar
+                    {/* Look for modifications and how to make each data be a differenct color */}
+                    {/* 'Doughnut' is separate from 'Pie' */}
+                    <Pie
                          data={{
                               labels: cLabels,
                               datasets: cDatasets
                          }}
-                         options={{ 
-                              scales: {
-                                   y: {
-                                        // Start graph at 0
-                                        beginAtZero: true,
-                                   },
-                              },
-                         }}
                     />
+                    {/* <Doughnut
+                         data={{
+                              labels: cLabels,
+                              datasets: cDatasets
+                         }}
+                    /> */}
                </div>
           )
      }else{

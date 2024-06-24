@@ -1,5 +1,5 @@
 import { Chart as ChartJS, defaults, registerables } from "chart.js"
-import { Bar } from "react-chartjs-2"
+import { Radar } from "react-chartjs-2"
 
 ChartJS.register(...registerables)
 defaults.maintainAspectRatio = false
@@ -9,11 +9,11 @@ import { chartStore } from "../../hooks/dataStore"
 import { setValOrder } from '../../functions/setValOrder'
 // import { delDataRecord } from '../../functions/delDataRecord'
 
-type BarProps = {
+type RadarProps = {
      unique: string
 }
 
-export const BarChart = (props:BarProps) => {
+export const RadarChart = (props:RadarProps) => {
      // const {chartset, setData, setModifyDate} = chartStore()
      const {chartset} = chartStore()
 
@@ -86,7 +86,8 @@ export const BarChart = (props:BarProps) => {
 
           return (
                <div className='chart-cont flex flex-col justify-end'>
-                    <Bar
+                    {/* Looks weird. Also maybe limit values */}
+                    <Radar
                          data={{
                               labels: cLabels,
                               datasets: cDatasets
